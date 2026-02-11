@@ -13,6 +13,7 @@ Modern web development notes — opinionated, practical, kept lean.
 - **Adding interactivity (card stacks, drag, animations)** → read `references/vanilla-js-patterns.md`
 - **Accessibility or performance concerns** → read `references/a11y-perf.md`
 - **Applying Saber's design system** → read `references/design-system.md`
+- **Choosing or applying color palettes** → read `references/color-palettes.md`
 
 Only load what you need. Don't read all references for a simple CSS tweak.
 
