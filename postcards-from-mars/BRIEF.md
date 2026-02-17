@@ -48,18 +48,36 @@ Shift5-inspired data texture:
 - Robot messages: handwritten or warm serif
 - Generous whitespace — let cards breathe
 
-## Interaction
-- **Tilt:** Mouse/gyro → subtle 3D card rotation with metallic light shift
-- **Flip:** Tap/click to flip card (front → back)
-- **Scroll:** Navigate through card archive, cards arrive/transition
-- **Share:** Per-card URL, one-tap download as image
+## User Flow (3 screens)
+
+### Screen 1 — Intro / Loading
+- Story introduction: "Humanity sent AI robots to Mars..."
+- Atmospheric loading (Mars dust, signal transmission animation)
+- Sets the mood before revealing the cast
+- GSAP scroll/timeline transition to Screen 2
+
+### Screen 2 — The Crew
+- All 5 robots displayed with their avatars (Saber's sketches)
+- Each card shows: avatar, name, mission, skills, personality snippet
+- Each has a **"Connect"** button (establish transmission link)
+- Hit Connect → GSAP transition into Screen 3 for that robot
+
+### Screen 3 — Postcard Viewer
+- 3D postcard from the selected robot
+- Tilt: Mouse/gyro → subtle 3D card rotation with metallic light shift
+- Flip: Tap/click to flip card (front → back)
+- Navigate between that robot's postcards
+- Back button to return to crew screen
+- Share: Per-card URL, one-tap download
+
+All transitions powered by GSAP for smooth, cinematic movement.
 
 ## Architecture
-- Single `index.html`, inline CSS/JS, no build step
-- Three.js for 3D card rendering + material
-- CSS overlay for crisp typography
-- `data.js` for postcard content (grows over time via cron)
-- GitHub Pages hosting
+- React + Vite (build step)
+- React Three Fiber for 3D card rendering
+- ReactBits components for UI effects (TiltedCard, Particles, DecryptedText, etc.)
+- GSAP for page/screen transitions
+- GitHub Pages hosting (static build output)
 
 ## Content Pipeline
 - **Phase 1:** 10 hand-crafted postcards (curated NASA images + written messages)
