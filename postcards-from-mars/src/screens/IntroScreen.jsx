@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
-import Dither from '../components/Dither'
 import './IntroScreen.css'
 
 export default function IntroScreen({ onEnter }) {
@@ -20,16 +19,6 @@ export default function IntroScreen({ onEnter }) {
 
   return (
     <div className="intro-screen" ref={containerRef}>
-      <Dither
-        waveColor={[0.76, 0.27, 0.05]}
-        waveSpeed={0.03}
-        waveFrequency={3}
-        waveAmplitude={0.3}
-        colorNum={4}
-        pixelSize={3}
-        enableMouseInteraction={true}
-        mouseRadius={0.8}
-      />
       <div className="intro-content">
         <h1 className="intro-logo reveal">
           POSTCARDS<br/>FROM MARS

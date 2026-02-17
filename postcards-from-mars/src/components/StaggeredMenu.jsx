@@ -189,11 +189,6 @@ export default function StaggeredMenu({
       </div>
       <header className="staggered-menu-header" aria-label="Navigation">
         <button ref={toggleBtnRef} className="sm-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={toggleMenu} type="button">
-          <span ref={textWrapRef} className="sm-toggle-textWrap" aria-hidden="true">
-            <span ref={textInnerRef} className="sm-toggle-textInner">
-              {textLines.map((l, i) => <span className="sm-toggle-line" key={i}>{l}</span>)}
-            </span>
-          </span>
           <span ref={iconRef} className="sm-icon" aria-hidden="true">
             <span ref={plusHRef} className="sm-icon-line" />
             <span ref={plusVRef} className="sm-icon-line sm-icon-line-v" />

@@ -17,12 +17,6 @@
   z-index: 1;
 }
 
-.intro-screen canvas {
-  position: absolute !important;
-  inset: 0;
-  z-index: 0;
-}
-
 .intro-logo {
   font-family: var(--font-sans); font-weight: 900;
   font-size: clamp(2.5rem, 8vw, 5rem);
