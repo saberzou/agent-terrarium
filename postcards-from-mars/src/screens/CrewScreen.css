@@ -17,7 +17,7 @@
 }
 
 .crew-title {
-  font-family: 'Archivo Black', sans-serif;
+  font-family: var(--font-sans); font-weight: 900;
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   color: var(--dust);
   letter-spacing: 0.1em;
@@ -25,7 +25,7 @@
 }
 
 .crew-subtitle {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-pixel);
   font-size: 0.75rem;
   color: var(--gray);
   letter-spacing: 0.05em;
@@ -75,7 +75,7 @@
 }
 
 .crew-name {
-  font-family: 'Archivo Black', sans-serif;
+  font-family: var(--font-sans); font-weight: 900;
   font-size: 0.9rem;
   color: var(--dust);
   letter-spacing: 0.08em;
@@ -83,7 +83,7 @@
 }
 
 .crew-role {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-pixel);
   font-size: 0.6rem;
   color: var(--gray);
   margin-bottom: 0.75rem;
@@ -91,7 +91,7 @@
 }
 
 .crew-personality {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.8rem;
   color: var(--cream);
   opacity: 0.7;
@@ -101,7 +101,7 @@
 }
 
 .crew-connect {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-pixel);
   font-size: 0.65rem;
   letter-spacing: 0.1em;
   padding: 0.5rem 1.25rem;

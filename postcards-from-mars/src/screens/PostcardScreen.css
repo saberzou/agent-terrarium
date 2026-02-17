@@ -22,7 +22,7 @@
 
 .postcard-back-btn {
   pointer-events: auto;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-pixel);
   font-size: 0.7rem;
   letter-spacing: 0.1em;
   padding: 0.5rem 1rem;
@@ -40,7 +40,7 @@
 }
 
 .postcard-signal {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-pixel);
   font-size: 0.65rem;
   color: var(--gray);
   text-align: right;
@@ -57,7 +57,7 @@
 }
 
 .postcard-robot-id {
-  font-family: 'Archivo Black', sans-serif;
+  font-family: var(--font-sans); font-weight: 900;
   font-size: 0.7rem;
   letter-spacing: 0.1em;
   color: var(--dust);
@@ -65,7 +65,7 @@
 }
 
 .postcard-hint {
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-pixel);
   font-size: 0.65rem;
   color: var(--gray);
   opacity: 0.4;
@@ -81,7 +81,7 @@
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.1);
   color: var(--cream);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-pixel);
   font-size: 0.7rem;
   padding: 0.5rem 1rem;
   cursor: pointer;

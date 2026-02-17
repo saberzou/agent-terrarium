@@ -33,12 +33,12 @@ function createFrontTexture(robot) {
 
   // Title
   ctx.fillStyle = robot.frontColor
-  ctx.font = 'bold 48px "Archivo Black", sans-serif'
+  ctx.font = 'bold 48px "Geist", sans-serif'
   ctx.textAlign = 'left'
   ctx.fillText(robot.frontTitle, 60, 900)
 
   ctx.fillStyle = '#D4A574'
-  ctx.font = '18px "Space Mono", monospace'
+  ctx.font = '18px "Geist Pixel", monospace'
   ctx.fillText(robot.frontSubtitle, 60, 940)
 
   // Border + corners
@@ -64,14 +64,14 @@ function createBackTexture(robot) {
 
   // Header
   ctx.fillStyle = '#E8763A'
-  ctx.font = 'bold 28px "Archivo Black", sans-serif'; ctx.textAlign = 'left'
+  ctx.font = 'bold 28px "Geist", sans-serif'; ctx.textAlign = 'left'
   ctx.fillText(robot.name, 60, 80)
 
   ctx.strokeStyle = '#E8763A40'; ctx.lineWidth = 1
   ctx.beginPath(); ctx.moveTo(60,100); ctx.lineTo(740,100); ctx.stroke()
 
   // Data
-  ctx.fillStyle = '#8B8B8B'; ctx.font = '14px "Space Mono", monospace'
+  ctx.fillStyle = '#8B8B8B'; ctx.font = '14px "Geist Pixel", monospace'
   const sigBlocks = Math.floor(robot.signal / 10)
   ctx.fillText(`SOL ${robot.sol}`, 60, 135)
   ctx.fillText(`COORDS: ${robot.coords}`, 60, 160)
@@ -82,18 +82,18 @@ function createBackTexture(robot) {
   ctx.beginPath(); ctx.moveTo(60,240); ctx.lineTo(740,240); ctx.stroke()
 
   // Message
-  ctx.fillStyle = '#F5EDE3'; ctx.font = '22px "DM Sans", sans-serif'
+  ctx.fillStyle = '#F5EDE3'; ctx.font = '22px "Geist", sans-serif'
   const lines = robot.message.split('\n')
   lines.forEach((line, i) => ctx.fillText(line, 60, 300 + i * 36))
 
   const msgBottom = 300 + lines.length * 36 + 30
   ctx.strokeStyle = '#D4A57430'
   ctx.beginPath(); ctx.moveTo(60,msgBottom); ctx.lineTo(740,msgBottom); ctx.stroke()
-  ctx.fillStyle = '#D4A574'; ctx.font = '14px "Space Mono", monospace'
+  ctx.fillStyle = '#D4A574'; ctx.font = '14px "Geist Pixel", monospace'
   ctx.fillText(`— ${robot.name}`, 60, msgBottom + 30)
 
   // Binary data decoration
-  ctx.fillStyle = '#8B8B8B30'; ctx.font = '10px "Space Mono", monospace'
+  ctx.fillStyle = '#8B8B8B30'; ctx.font = '10px "Geist Pixel", monospace'
   for (let row = 0; row < 4; row++) {
     let d = ''
     for (let col = 0; col < 8; col++) d += Math.floor(Math.random()*256).toString(2).padStart(8,'0') + '  '
