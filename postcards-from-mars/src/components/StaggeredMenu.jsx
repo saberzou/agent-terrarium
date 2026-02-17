@@ -22,13 +22,9 @@ export default function StaggeredMenu({
   const plusHRef = useRef(null);
   const plusVRef = useRef(null);
   const iconRef = useRef(null);
-  const textInnerRef = useRef(null);
-  const textWrapRef = useRef(null);
-  const [textLines, setTextLines] = useState(['Menu', 'Close']);
   const openTlRef = useRef(null);
   const closeTweenRef = useRef(null);
   const spinTweenRef = useRef(null);
-  const textCycleAnimRef = useRef(null);
   const colorTweenRef = useRef(null);
   const toggleBtnRef = useRef(null);
   const busyRef = useRef(false);
@@ -41,8 +37,7 @@ export default function StaggeredMenu({
       const plusH = plusHRef.current;
       const plusV = plusVRef.current;
       const icon = iconRef.current;
-      const textInner = textInnerRef.current;
-      if (!panel || !plusH || !plusV || !icon || !textInner) return;
+      if (!panel || !plusH || !plusV || !icon) return;
       let preLayers = [];
       if (preContainer) {
         preLayers = Array.from(preContainer.querySelectorAll('.sm-prelayer'));
@@ -53,7 +48,6 @@ export default function StaggeredMenu({
       gsap.set(plusH, { transformOrigin: '50% 50%', rotate: 0 });
       gsap.set(plusV, { transformOrigin: '50% 50%', rotate: 90 });
       gsap.set(icon, { rotate: 0, transformOrigin: '50% 50%' });
-      gsap.set(textInner, { yPercent: 0 });
       if (toggleBtnRef.current) gsap.set(toggleBtnRef.current, { color: menuButtonColor });
     });
     return () => ctx.revert();
@@ -136,36 +130,19 @@ export default function StaggeredMenu({
     colorTweenRef.current = gsap.to(btn, { color: opening ? openMenuButtonColor : menuButtonColor, delay: 0.18, duration: 0.3, ease: 'power2.out' });
   }, [openMenuButtonColor, menuButtonColor]);
 
-  const animateText = useCallback((opening) => {
-    const inner = textInnerRef.current;
-    if (!inner) return;
-    textCycleAnimRef.current?.kill();
-    const currentLabel = opening ? 'Menu' : 'Close';
-    const targetLabel = opening ? 'Close' : 'Menu';
-    const seq = [currentLabel];
-    let last = currentLabel;
-    for (let i = 0; i < 3; i++) { last = last === 'Menu' ? 'Close' : 'Menu'; seq.push(last); }
-    if (last !== targetLabel) seq.push(targetLabel);
-    seq.push(targetLabel);
-    setTextLines(seq);
-    gsap.set(inner, { yPercent: 0 });
-    const finalShift = ((seq.length - 1) / seq.length) * 100;
-    textCycleAnimRef.current = gsap.to(inner, { yPercent: -finalShift, duration: 0.5 + seq.length * 0.07, ease: 'power4.out' });
-  }, []);
-
   const closeMenu = useCallback(() => {
     if (openRef.current) {
       openRef.current = false; setOpen(false);
-      playClose(); animateIcon(false); animateColor(false); animateText(false);
+      playClose(); animateIcon(false); animateColor(false);
     }
-  }, [playClose, animateIcon, animateColor, animateText]);
+  }, [playClose, animateIcon, animateColor]);
 
   const toggleMenu = useCallback(() => {
     const target = !openRef.current;
     openRef.current = target; setOpen(target);
     if (target) playOpen(); else playClose();
-    animateIcon(target); animateColor(target); animateText(target);
-  }, [playOpen, playClose, animateIcon, animateColor, animateText]);
+    animateIcon(target); animateColor(target);
+  }, [playOpen, playClose, animateIcon, animateColor]);
 
   React.useEffect(() => {
     if (!closeOnClickAway || !open) return;
