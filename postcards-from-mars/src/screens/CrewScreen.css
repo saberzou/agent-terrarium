@@ -5,50 +5,42 @@
   flex-direction: column;
   position: relative;
   z-index: 10;
-  overflow-y: auto;
 }
 
 .crew-header {
-  text-align: center;
-  padding: 2.5rem 2rem 1rem;
+  text-align: left;
+  padding: var(--page-py) var(--page-px) 1rem;
   position: relative;
   z-index: 2;
 }
 
 .crew-title {
   font-family: var(--font-sans);
-  font-weight: 900;
+  font-weight: 700;
   font-size: clamp(2rem, 6vw, 3.5rem);
-  color: var(--dust);
-  letter-spacing: 0.05em;
+  color: var(--accent);
+  letter-spacing: -0.02em;
   margin-bottom: 0.5rem;
 }
 
 .crew-subtitle {
   font-family: var(--font-pixel);
   font-size: 0.75rem;
-  color: var(--gray);
+  color: #fff;
+  opacity: 0.5;
   letter-spacing: 0.05em;
-}
-
-.crew-gallery-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.15;
-  pointer-events: none;
 }
 
 .crew-grid {
   display: flex;
-  gap: 1.5rem;
-  padding: 1.5rem 2rem 3rem;
+  gap: 0;
+  padding: 1.5rem var(--page-px) var(--page-py);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   position: relative;
   z-index: 2;
   flex: 1;
-  align-items: center;
+  align-items: stretch;
 }
 
 .crew-grid::-webkit-scrollbar {
@@ -56,26 +48,23 @@
 }
 
 .crew-card {
-  flex: 0 0 260px;
+  flex: 0 0 240px;
   scroll-snap-align: center;
-  background: rgba(26, 26, 26, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(232, 118, 58, 0.15);
-  border-radius: 12px;
+  background: var(--charcoal);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   gap: 0.75rem;
 }
 
 .crew-avatar-wrap {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
+  width: 100%;
+  aspect-ratio: 1;
   overflow: hidden;
-  border: 2px solid rgba(232, 118, 58, 0.3);
 }
 
 .crew-avatar {
@@ -86,16 +75,17 @@
 
 .crew-name {
   font-family: var(--font-sans);
-  font-weight: 900;
+  font-weight: 700;
   font-size: 1.1rem;
-  color: var(--dust);
-  letter-spacing: 0.05em;
+  color: var(--accent);
+  letter-spacing: -0.01em;
 }
 
 .crew-role {
   font-family: var(--font-pixel);
   font-size: 0.65rem;
-  color: var(--gray);
+  color: #fff;
+  opacity: 0.5;
   letter-spacing: 0.02em;
 }
 
@@ -113,15 +103,13 @@
   font-size: 0.7rem;
   letter-spacing: 0.1em;
   padding: 0.6rem 1.5rem;
-  background: transparent;
-  border: 1px solid var(--dust);
-  color: var(--dust);
+  background: var(--accent);
+  border: none;
+  color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 4px;
 }
 
 .crew-connect:hover {
-  background: var(--dust);
-  color: var(--charcoal);
+  background: #e03300;
 }

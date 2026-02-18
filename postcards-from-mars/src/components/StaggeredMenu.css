@@ -51,6 +51,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.3rem;
   background: transparent;
   border: none;
@@ -59,6 +60,11 @@
   font-weight: 500;
   line-height: 1;
   overflow: visible;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px;
+  margin: -12px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sm-toggle:focus-visible {
@@ -133,14 +139,25 @@
   width: clamp(260px, 38vw, 420px);
   height: 100%;
   background: #1A1A1A;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   padding: 6em 2em 2em 2em;
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 10;
   pointer-events: auto;
+}
+
+.sm-panel-dither {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.sm-panel-dither canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 [data-position='left'] .staggered-menu-panel {
@@ -173,6 +190,8 @@
 }
 
 .sm-panel-inner {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -252,7 +271,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .sm-panel-list {
@@ -273,7 +292,7 @@
   cursor: pointer;
   line-height: 1;
   letter-spacing: -2px;
-  text-transform: uppercase;
+  text-transform: none;
   transition:
     background 0.25s,
     color 0.25s;

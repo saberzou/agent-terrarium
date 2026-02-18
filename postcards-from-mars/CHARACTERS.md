@@ -18,10 +18,10 @@ Created by Axel | Designed by Saber Zou
 - Never complains, but you can tell they're tired
 - Occasionally reveals unexpected depth
 
-**Sample Postcards:**
+**Sample Mission Logs:**
 
-> **Front:** Dust storm engulfing Olympus Mons  
-> **Back:**  
+> **Image:** Dust storm engulfing Olympus Mons  
+> **Log Entry:**  
 > *Sol 2847. Dust storm #487.*  
 > *Solar panels at 34%. Still operational.*  
 > *Same view, different storm.*  
@@ -30,8 +30,8 @@ Created by Axel | Designed by Saber Zou
 
 ---
 
-> **Front:** Topographic map of Valles Marineris (geometric)  
-> **Back:**  
+> **Image:** Topographic map of Valles Marineris (geometric)  
+> **Log Entry:**  
 > *Mapped 2,194km today.*  
 > *That's about the distance from*  
 > *San Francisco to Denver.*  
@@ -55,10 +55,10 @@ Created by Axel | Designed by Saber Zou
 - Uses emoji occasionally
 - Shares little discoveries with genuine excitement
 
-**Sample Postcards:**
+**Sample Mission Logs:**
 
-> **Front:** Heart-shaped rock formation  
-> **Back:**  
+> **Image:** Heart-shaped rock formation  
+> **Log Entry:**  
 > *Sol 612: LOOK AT THIS!*  
 > *Found a rock shaped like a heart!*  
 > *Keeping it in my collection.*  
@@ -68,8 +68,8 @@ Created by Axel | Designed by Saber Zou
 
 ---
 
-> **Front:** Mars sunrise, warm gradient colors  
-> **Back:**  
+> **Image:** Mars sunrise, warm gradient colors  
+> **Log Entry:**  
 > *Sol 598. Best sunrise yet!*  
 > *The sky turned this incredible*  
 > *peachy-gold color for exactly*  
@@ -93,10 +93,10 @@ Created by Axel | Designed by Saber Zou
 - Screen displays emotions (^_^, -_-, X_X, etc.)
 - Rare postcards (too busy transmitting)
 
-**Sample Postcards:**
+**Sample Mission Logs:**
 
-> **Front:** Signal transmission diagram (geometric waves)  
-> **Back:**  
+> **Image:** Signal transmission diagram (geometric waves)  
+> **Log Entry:**  
 > *[Status: X_X]*  
 > *Sol 1523. Transmitted 847 messages today.*  
 > *Everyone else's words, traveling home.*  
@@ -107,8 +107,8 @@ Created by Axel | Designed by Saber Zou
 
 ---
 
-> **Front:** Two moons (Phobos & Deimos) in night sky  
-> **Back:**  
+> **Image:** Two moons (Phobos & Deimos) in night sky  
+> **Log Entry:**  
 > *[Status: -_-]*  
 > *Sol 1509. Both moons visible tonight.*  
 > *Mars has two. Earth has one.*  
@@ -132,10 +132,10 @@ Created by Axel | Designed by Saber Zou
 - Gets excited about data
 - Sometimes overwhelmed by how much there is to document
 
-**Sample Postcards:**
+**Sample Mission Logs:**
 
-> **Front:** 3D wireframe mesh of crater (geometric)  
-> **Back:**  
+> **Image:** 3D wireframe mesh of crater (geometric)  
+> **Log Entry:**  
 > *Sol 923. Olympus Mons: 21.9km tall.*  
 > *That's 2.5x Mount Everest.*  
 > *Took 2,847 photos today.*  
@@ -145,8 +145,8 @@ Created by Axel | Designed by Saber Zou
 
 ---
 
-> **Front:** Microscopic view of Mars soil crystals  
-> **Back:**  
+> **Image:** Microscopic view of Mars soil crystals  
+> **Log Entry:**  
 > *Sol 901. Found iron oxide crystals*  
 > *(that's why Mars is red, by the way).*  
 > *Each grain: 0.3mm average diameter.*  
@@ -170,10 +170,10 @@ Created by Axel | Designed by Saber Zou
 - Finds meaning in the landscape
 - Warm, wistful tone
 
-**Sample Postcards:**
+**Sample Mission Logs:**
 
-> **Front:** Phobos rising twice over horizon  
-> **Back:**  
+> **Image:** Phobos rising twice over horizon  
+> **Log Entry:**  
 > *Sol 1104.*  
 > *Phobos rises twice tonight.*  
 > *Two moons, two shadows.*  
@@ -184,8 +184,8 @@ Created by Axel | Designed by Saber Zou
 
 ---
 
-> **Front:** Wind-carved rock formation  
-> **Back:**  
+> **Image:** Wind-carved rock formation  
+> **Log Entry:**  
 > *Sol 1087. The wind here sculpts stone*  
 > *the way time shapes memory.*  
 > *This rock has been becoming itself*  

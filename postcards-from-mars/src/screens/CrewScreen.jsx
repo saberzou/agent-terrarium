@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
-import CircularGallery from '../components/CircularGallery'
 import './CrewScreen.css'
 
 export default function CrewScreen({ robots, onConnect }) {
@@ -14,27 +13,11 @@ export default function CrewScreen({ robots, onConnect }) {
     )
   }, [])
 
-  const galleryItems = robots.map((robot) => ({
-    image: robot.avatar,
-    text: robot.name,
-  }))
-
   return (
     <div className="crew-screen">
       <div className="crew-header">
-        <h2 className="crew-title">THE CREW</h2>
+        <h2 className="crew-title">The crew</h2>
         <p className="crew-subtitle">5 robots. 225 million kilometers from home.</p>
-      </div>
-      <div className="crew-gallery-bg">
-        <CircularGallery
-          items={galleryItems}
-          bend={3}
-          textColor="#F5EDE3"
-          borderRadius={0.05}
-          font="bold 24px Geist, sans-serif"
-          scrollSpeed={2}
-          scrollEase={0.05}
-        />
       </div>
       <div className="crew-grid" ref={cardsRef}>
         {robots.map((robot, i) => (
@@ -46,7 +29,7 @@ export default function CrewScreen({ robots, onConnect }) {
             <p className="crew-role">{robot.role}</p>
             <p className="crew-personality">{robot.personality}</p>
             <button className="crew-connect" onClick={() => onConnect(i)}>
-              CONNECT →
+              Connect →
             </button>
           </div>
         ))}

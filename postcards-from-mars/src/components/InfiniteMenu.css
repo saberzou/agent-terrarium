@@ -1,0 +1,66 @@
+#infinite-grid-menu-canvas {
+  cursor: grab;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  outline: none;
+}
+
+#infinite-grid-menu-canvas:active {
+  cursor: grabbing;
+}
+
+.face-title {
+  user-select: none;
+  pointer-events: none;
+  position: absolute;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  color: var(--accent);
+  left: var(--page-px);
+  bottom: 6rem;
+  letter-spacing: -0.02em;
+}
+
+.face-title.active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: 0.5s ease;
+}
+
+.face-title.inactive {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: 0.1s ease;
+}
+
+.face-description {
+  user-select: none;
+  pointer-events: none;
+  position: absolute;
+  font-family: var(--font-pixel);
+  font-size: 0.65rem;
+  color: #fff;
+  opacity: 0.5;
+  left: var(--page-px);
+  bottom: 4.5rem;
+  letter-spacing: 0.05em;
+}
+
+.face-description.active {
+  opacity: 0.5;
+  transform: translateY(0);
+  transition: 0.5s ease;
+}
+
+.face-description.inactive {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: 0.1s ease;
+}
+
+.action-button {
+  display: none;
+}

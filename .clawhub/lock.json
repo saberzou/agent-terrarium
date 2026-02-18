@@ -4,6 +4,26 @@
     "notion-skill": {
       "version": "1.0.0",
       "installedAt": 1770433071674
+    },
+    "notion-cli": {
+      "version": "0.0.1",
+      "installedAt": 1770513510291
+    },
+    "writer": {
+      "version": "1.0.2",
+      "installedAt": 1770777496250
+    },
+    "x-twitter": {
+      "version": "2.3.1",
+      "installedAt": 1771082415632
+    },
+    "openclaw-twitter": {
+      "version": "1.0.0",
+      "installedAt": 1771082426430
+    },
+    "mlx-whisper": {
+      "version": "1.0.0",
+      "installedAt": 1771218621785
     }
   }
 }

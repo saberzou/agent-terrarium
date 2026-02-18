@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import Dither from './Dither';
 import './StaggeredMenu.css';
 
 export default function StaggeredMenu({
@@ -173,6 +174,18 @@ export default function StaggeredMenu({
         </button>
       </header>
       <aside ref={panelRef} className="staggered-menu-panel" aria-hidden={!open}>
+        <div className="sm-panel-dither">
+          <Dither
+            waveColor={[0.25, 0.25, 0.25]}
+            waveSpeed={0.02}
+            waveFrequency={2}
+            waveAmplitude={0.15}
+            colorNum={3}
+            pixelSize={3}
+            enableMouseInteraction={false}
+            mouseRadius={0}
+          />
+        </div>
         <div className="sm-panel-inner">
           <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
             {items.map((it, idx) => (

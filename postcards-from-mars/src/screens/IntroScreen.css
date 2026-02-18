@@ -3,32 +3,34 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   position: relative;
   z-index: 10;
 }
 
 .intro-content {
-  text-align: center;
+  text-align: left;
   max-width: 600px;
-  padding: 2rem;
+  padding: 0 var(--page-px);
   position: relative;
   z-index: 1;
 }
 
 .intro-logo {
-  font-family: var(--font-sans); font-weight: 900;
+  font-family: var(--font-sans);
+  font-weight: 700;
   font-size: clamp(2.5rem, 8vw, 5rem);
   line-height: 1.1;
-  color: var(--dust);
+  color: var(--accent);
   margin-bottom: 2rem;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.02em;
 }
 
 .intro-story {
   font-family: var(--font-sans);
   font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 400;
   color: var(--cream);
   opacity: 0.85;
   margin-bottom: 0.75rem;
@@ -41,25 +43,25 @@
   font-size: 0.85rem;
   letter-spacing: 0.15em;
   padding: 1rem 2.5rem;
-  background: transparent;
-  border: 1px solid var(--dust);
-  color: var(--dust);
+  background: var(--accent);
+  border: none;
+  color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .intro-cta:hover {
-  background: var(--dust);
-  color: var(--charcoal);
+  background: #e03300;
 }
 
 .intro-signal {
   position: absolute;
-  top: 2rem;
-  right: 2.5rem;
+  top: var(--page-py);
+  right: var(--page-px);
   font-family: var(--font-pixel);
   font-size: 0.65rem;
-  color: var(--gray);
+  color: #fff;
   text-align: right;
   line-height: 1.8;
   opacity: 0.5;

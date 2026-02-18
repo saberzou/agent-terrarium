@@ -1,0 +1,94 @@
+.explore-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: rgba(0, 0, 0, 0.50);
+}
+
+.explore-hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  pointer-events: none;
+  padding: var(--page-py) var(--page-px);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.explore-title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.explore-subtitle {
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  color: #fff;
+  opacity: 0.5;
+  letter-spacing: 0.05em;
+}
+
+.explore-signal {
+  font-family: var(--font-pixel);
+  font-size: 0.6rem;
+  color: #fff;
+  opacity: 0.4;
+  text-align: right;
+  line-height: 1.8;
+  flex-shrink: 0;
+}
+
+.explore-globe {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Loading state */
+.explore-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Shimmer text animation */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-text {
+  font-family: var(--font-pixel);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.3) 0%,
+    rgba(255,255,255,0.8) 40%,
+    rgba(255,255,255,0.8) 60%,
+    rgba(255,255,255,0.3) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.shimmer-large {
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
+  letter-spacing: 0.15em;
+}
+
+@media (max-width: 640px) {
+  .explore-hud { flex-direction: column; gap: 0.5rem; }
+  .explore-signal { text-align: left; }
+}

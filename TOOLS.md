@@ -2,39 +2,20 @@
 
 Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
 
-## What Goes Here
-
-Things like:
-
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
-
-## Examples
-
-```markdown
-### Cameras
-
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
-
-### SSH
-
-- home-server → 192.168.1.100, user: admin
-
-### TTS
-
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
-```
-
-## Why Separate?
-
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
-
----
-
-Add whatever helps you do your job. This is your cheat sheet.
+## Antfarm — Multi-Agent Workflow Orchestrator
+- **What:** AI dev team in a box — planner, developer, verifier, tester, reviewer agents
+- **Site:** https://www.antfarm.cool/
+- **Repo:** https://github.com/snarktank/antfarm
+- **Install:** `curl -fsSL https://raw.githubusercontent.com/snarktank/antfarm/v0.4.1/scripts/install.sh | bash`
+- **Built on:** OpenClaw (YAML + SQLite + cron, zero external deps)
+- **Workflows:**
+  - `feature-dev` — task → plan → implement → verify → test → PR → review
+  - `security-audit` — scan → prioritize → fix → verify → test → PR
+  - `bug-fix` — triage → investigate → fix → verify → PR
+- **Custom workflows:** Define agents/steps in YAML + Markdown
+- **Key commands:**
+  - `antfarm workflow run <id> <task>` — start a run
+  - `antfarm workflow status <query>` — check progress
+  - `antfarm workflow resume <run-id>` — resume failed run
+  - `antfarm dashboard` — web UI for monitoring
+- **Use case:** Automate dev work on repos (feature builds, security fixes, bug fixes)

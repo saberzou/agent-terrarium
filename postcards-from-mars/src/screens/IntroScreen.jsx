@@ -21,22 +21,22 @@ export default function IntroScreen({ onEnter }) {
     <div className="intro-screen" ref={containerRef}>
       <div className="intro-content">
         <h1 className="intro-logo reveal">
-          POSTCARDS<br/>FROM MARS
+          Mission logs<br/>from Mars
         </h1>
         <p className="intro-story reveal">
           Humanity sent 5 AI robots to Mars ahead of the first human settlers.
         </p>
         <p className="intro-story reveal">
-          They explore. They document. They send postcards home.
+          They explore. They document. They keep mission logs.
         </p>
         <button className="intro-cta" onClick={onEnter}>
-          RECEIVE TRANSMISSIONS →
+          Explore Mars →
         </button>
       </div>
       <div className="intro-signal reveal">
         <span>SIGNAL: ████░░ 67%</span><br/>
-        <span>RELAY-1 → EARTH</span><br/>
-        <span>DELAY: 12m 34s</span>
+        <span>Relay-1 → Earth</span><br/>
+        <span>Delay: 12m 34s</span>
       </div>
     </div>
   )
