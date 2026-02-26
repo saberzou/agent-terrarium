@@ -64,7 +64,7 @@ export default function ChatWindow({ robot, onClose }) {
             <img src={robot.avatar} alt={robot.name} className="chat-header-avatar" />
             <div>
               <div className="chat-header-name">{robot.name}</div>
-              <div className="chat-header-status">SIGNAL: {robot.signal}% · SOL {robot.sol}</div>
+              <div className="chat-header-status">SIGNAL: {robot.signal}% · SOL {robot.logs?.[0]?.sol ?? '—'}</div>
             </div>
           </div>
           <button className="chat-close" onClick={handleClose}>✕</button>

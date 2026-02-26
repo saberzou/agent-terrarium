@@ -17,26 +17,75 @@
   z-index: 1;
 }
 
+/* Signal pulse */
+.signal-pulse-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.signal-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 20px var(--accent), 0 0 60px var(--accent);
+}
+
+/* [SIGNAL ACQUIRED] */
+.intro-signal-text {
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+}
+
+/* Title */
 .intro-logo {
   font-family: var(--font-sans);
   font-weight: 700;
   font-size: clamp(2.5rem, 8vw, 5rem);
   line-height: 1.1;
   color: var(--accent);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   letter-spacing: -0.02em;
 }
 
-.intro-story {
+/* Subtitle */
+.intro-subtitle {
+  margin-bottom: 0;
+}
+
+.intro-subtitle p {
   font-family: var(--font-sans);
   font-size: clamp(1rem, 2.5vw, 1.25rem);
   font-weight: 400;
   color: var(--cream);
   opacity: 0.85;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   line-height: 1.7;
 }
 
+/* Typing cursor */
+.cursor {
+  display: inline;
+  animation: blink 0.6s step-end infinite;
+  color: var(--accent);
+  font-weight: 300;
+  margin-left: 1px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* CTA */
 .intro-cta {
   margin-top: 2.5rem;
   font-family: var(--font-pixel);
@@ -49,12 +98,25 @@
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  animation: fadeInUp 0.6s ease both;
 }
 
 .intro-cta:hover {
   background: #e03300;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Signal info corner */
 .intro-signal {
   position: absolute;
   top: var(--page-py);
@@ -64,6 +126,11 @@
   color: #fff;
   text-align: right;
   line-height: 1.8;
-  opacity: 0.5;
+  opacity: 0;
   z-index: 1;
+  transition: opacity 0.8s ease;
+}
+
+.intro-signal.visible {
+  opacity: 0.5;
 }

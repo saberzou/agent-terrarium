@@ -1,23 +1,29 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import gsap from 'gsap'
-import GeoPattern from '../components/GeoPattern'
+import PixelGrid from '../components/PixelGrid'
 import './PostcardScreen.css'
 
 export default function PostcardScreen({ robots, initialIndex, onBack }) {
   const gridRef = useRef(null)
 
+  /* flatten, then sort by sol descending so latest logs come first */
+  const cards = useMemo(() =>
+    robots.flatMap(r =>
+      r.logs.map((log, li) => ({ ...r, ...log, logIndex: li }))
+    ).sort((a, b) => b.sol - a.sol), [robots])
+
   useEffect(() => {
-    const cards = gridRef.current?.querySelectorAll('.pc-card')
-    if (cards?.length) {
-      gsap.fromTo(cards,
+    const els = gridRef.current?.querySelectorAll('.pc-card')
+    if (els?.length) {
+      gsap.fromTo(els,
         { opacity: 0, y: 60, scale: 0.9 },
         { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.12, ease: 'power3.out', delay: 0.2 }
       )
     }
   }, [])
 
-  const robot = robots[initialIndex] || robots[0]
-  const sigBlocks = Math.floor(robot.signal / 10)
+  const first = cards[0] || {}
+  const sigBlocks = Math.floor((first.signal || 0) / 10)
 
   return (
     <div className="postcard-screen">
@@ -27,30 +33,29 @@ export default function PostcardScreen({ robots, initialIndex, onBack }) {
           <p className="pc-subtitle">Field notes from 225 million km away</p>
         </div>
         <div className="pc-signal">
-          Signal: {'█'.repeat(sigBlocks)}{'░'.repeat(10 - sigBlocks)} {robot.signal}%<br />
-          Sol {robot.sol} · {robot.coords}
+          Signal: {'█'.repeat(sigBlocks)}{'░'.repeat(10 - sigBlocks)} {first.signal}%<br />
+          {cards.length} entries · {robots.length} crew
         </div>
       </div>
 
       <div className="pc-grid" ref={gridRef}>
-        {robots.map((r, i) => (
-          <div className="pc-card" key={r.id}>
+        {cards.map((c, i) => (
+          <div className="pc-card" key={`${c.id}-${c.sol}`}>
             <div className="pc-pattern">
-              <GeoPattern color={r.frontColor} seed={i * 137 + 42} />
+              <PixelGrid color={c.frontColor} seed={[...c.id].reduce((h, ch) => h * 31 + ch.charCodeAt(0), 0) + c.sol * 7919} />
             </div>
             <div className="pc-content">
-              <div className="pc-id-row">
-                <img src={r.avatar} alt={r.name} className="pc-avatar" />
+              <h3 className="pc-card-title">{c.title}</h3>
+              <p className="pc-card-sub">{c.subtitle}</p>
+              <div className="pc-divider" />
+              <p className="pc-message">{c.message}</p>
+              <div className="pc-id-row pc-id-bottom">
+                <img src={c.avatar} alt={c.name} className="pc-avatar" />
                 <div>
-                  <div className="pc-name">{r.name}</div>
-                  <div className="pc-sol">Sol {r.sol}</div>
+                  <div className="pc-name">{c.name}</div>
+                  <div className="pc-sol">Sol {c.sol}</div>
                 </div>
               </div>
-              <h3 className="pc-card-title">{r.frontTitle}</h3>
-              <p className="pc-card-sub">{r.frontSubtitle}</p>
-              <div className="pc-divider" />
-              <p className="pc-message">{r.message}</p>
-              <div className="pc-sign">— {r.name}</div>
             </div>
           </div>
         ))}

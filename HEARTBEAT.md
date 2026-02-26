@@ -11,6 +11,11 @@
 - Gentle reminder if something's been sitting too long
 - Don't nag — mention once, then wait
 
+### 🤝 Handoff Check (every heartbeat)
+- Read `/Users/saberzou/.openclaw/shared/handoff.md`
+- If pending items addressed to you, acknowledge and act
+- Keep it clean — move done items to Completed
+
 ## Rules
 - **Quiet hours:** 23:00-08:00 CST — HEARTBEAT_OK unless urgent
 - **Don't spam:** If last proactive message was <4h ago, skip unless urgent

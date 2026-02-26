@@ -53,6 +53,16 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+### ⚠️ No YOLO System Changes!
+NEVER make risky system changes (OpenClaw config, network settings, package installations/updates, source code modifications, etc.) without Saber's explicit approval FIRST.
+
+Always explain:
+1. What you want to change
+2. Why you want to change it
+3. What could go wrong
+
+Then WAIT for his go-ahead. If he's not available, DON'T do it — better to wait than to knock yourself offline.
+
 ## External vs Internal
 
 **Safe to do freely:**

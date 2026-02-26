@@ -2,6 +2,12 @@
 
 Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
 
+## Vercel
+- **Token location:** `/Users/saberzou/.openclaw/.env` (as `VERCEL_TOKEN`)
+- **Usage:** `source /Users/saberzou/.openclaw/.env && vercel --token $VERCEL_TOKEN ...`
+- **Or in code:** Read from `.env` file
+- **Purpose:** Deploy projects to Vercel (saber-site port planned)
+
 ## Antfarm — Multi-Agent Workflow Orchestrator
 - **What:** AI dev team in a box — planner, developer, verifier, tester, reviewer agents
 - **Site:** https://www.antfarm.cool/

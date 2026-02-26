@@ -38,6 +38,7 @@ export default function App() {
   const [chatRobot, setChatRobot] = useState(null)
   const containerRef = useRef(null)
   const ditherRef = useRef(null)
+  const introPlayedRef = useRef(false)
 
   const navigate = useCallback((to) => {
     setScreen(to)
@@ -106,7 +107,7 @@ export default function App() {
       <div className="app" ref={containerRef}>
         <DustParticles />
         {screen === 'intro' && (
-          <IntroScreen onEnter={() => transition('explore')} />
+          <IntroScreen onEnter={() => transition('explore')} skipAnimation={introPlayedRef.current} onAnimationDone={() => { introPlayedRef.current = true }} />
         )}
         {screen === 'explore' && (
           <ExploreScreen />

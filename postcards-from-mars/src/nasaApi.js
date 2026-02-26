@@ -7,8 +7,8 @@ export async function fetchMarsPhotos() {
     return (data.photos || []).map(p => ({
       id: p.id,
       image: p.img_src,
-      title: `Sol ${p.sol}`,
-      description: `${p.camera} · ${p.rover}`,
+      title: p.title || 'Mars',
+      description: p.description || '',
       link: '',
     }))
   } catch {

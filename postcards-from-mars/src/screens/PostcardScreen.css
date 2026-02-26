@@ -162,14 +162,8 @@
   overflow: hidden;
 }
 
-.pc-sign {
-  font-family: var(--font-pixel);
-  font-size: 0.5rem;
-  color: #fff;
-  opacity: 0.2;
-  letter-spacing: 0.05em;
+.pc-id-bottom {
   margin-top: auto;
-  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
