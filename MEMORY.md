@@ -19,6 +19,12 @@
 - Learned the hard way: `streamMode: "none"` (invalid) instead of `"off"` — crashed gateway.
 - Valid `streamMode` values: `"off" | "partial" | "block"`.
 
+### ⚠️ RULE: Validate JS/HTML/JSON Before Every Commit
+- **Run `scripts/validate-js.sh <files>` before EVERY `git commit`** that touches code.
+- Cron jobs broke pixel-dailies (stray `}` in data.js) and json-prompts (extra brace in index.html) — Feb 2026.
+- Root cause: LLM miscounts braces in surgical edits on long files.
+- Prevention: syntax validation script + rule in AGENTS.md.
+
 ### Gateway & Recovery
 - **config.patch (SIGUSR1)** = hot reload, safe, session survives. Use for all config changes.
 - **Full restart** = risky. `openclaw doctor` is recovery path.

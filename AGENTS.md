@@ -53,6 +53,16 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+### ⚠️ Mandatory: Validate Before Committing Code!
+**EVERY time you edit a `.js`, `.json`, or `.html` file, you MUST run the validation script before `git commit`:**
+```bash
+/Users/saberzou/.openclaw/workspace/scripts/validate-js.sh <file1> [<file2> ...]
+```
+- If validation fails, **fix the error first**. Do NOT commit broken code.
+- This applies to ALL agents (main, axel, cron jobs, sub-agents).
+- Common mistake: stray closing braces `}` or brackets `]` when appending to arrays.
+- For data files (like `data.js`, `prompts.json`): prefer appending to the end of arrays, keep edits minimal.
+
 ### ⚠️ No YOLO System Changes!
 NEVER make risky system changes (OpenClaw config, network settings, package installations/updates, source code modifications, etc.) without Saber's explicit approval FIRST.
 
