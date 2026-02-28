@@ -95,8 +95,8 @@
 
     // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
-    scene.fog = new THREE.Fog(0x1a1a2e, 20, 60);
+    scene.background = new THREE.Color(0x2a2a3e);
+    scene.fog = new THREE.Fog(0x2a2a3e, 30, 80);
 
     // Isometric camera
     const aspect = window.innerWidth / window.innerHeight;
@@ -118,33 +118,39 @@
     controls.minZoom = 0.5;
     controls.maxZoom = 2;
 
-    // Lighting based on time
+    // Lighting based on time — always bright enough to see, with mood tint
     const now = new Date();
     const hour = now.getHours();
-    let lightIntensity = 1;
-    let lightColor = 0xffffff;
-    let ambientIntensity = 0.4;
+    let lightIntensity, lightColor, ambientIntensity, ambientColor;
 
     if (hour >= 6 && hour < 12) { // Morning
-      lightColor = 0xffe4b5;
-      lightIntensity = 0.8;
-      ambientIntensity = 0.5;
+      lightColor = 0xfff0d0;
+      lightIntensity = 1.5;
+      ambientColor = 0xffe4b5;
+      ambientIntensity = 1.0;
     } else if (hour >= 12 && hour < 18) { // Afternoon
       lightColor = 0xffffff;
-      lightIntensity = 1;
-      ambientIntensity = 0.6;
+      lightIntensity = 1.6;
+      ambientColor = 0xffffff;
+      ambientIntensity = 1.0;
     } else if (hour >= 18 && hour < 22) { // Evening
-      lightColor = 0xffa500;
-      lightIntensity = 0.7;
-      ambientIntensity = 0.3;
+      lightColor = 0xffd59e;
+      lightIntensity = 1.4;
+      ambientColor = 0xffe0b2;
+      ambientIntensity = 0.9;
     } else { // Night
-      lightColor = 0x4169e1;
-      lightIntensity = 0.4;
-      ambientIntensity = 0.2;
+      lightColor = 0xb0c4de;
+      lightIntensity = 1.0;
+      ambientColor = 0x8899bb;
+      ambientIntensity = 0.7;
     }
 
-    const ambientLight = new THREE.AmbientLight(lightColor, ambientIntensity);
+    const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
     scene.add(ambientLight);
+
+    // Hemisphere light for natural fill
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+    scene.add(hemiLight);
 
     const dirLight = new THREE.DirectionalLight(lightColor, lightIntensity);
     dirLight.position.set(10, 20, 10);
@@ -152,6 +158,11 @@
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     scene.add(dirLight);
+
+    // Secondary fill light from opposite side
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(-10, 15, -5);
+    scene.add(fillLight);
 
     // Helper: create voxel box
     function createBox(w, h, d, color, x, y, z) {
