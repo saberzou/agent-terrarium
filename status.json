@@ -1,0 +1,8 @@
+{
+  "agents": {
+    "atticus": { "status": "idle", "lastActivity": "2026-02-28T10:00:00Z", "task": "" },
+    "axel": { "status": "working", "lastActivity": "2026-02-28T10:05:00Z", "task": "painting" },
+    "astra": { "status": "exploring", "lastActivity": "2026-02-28T09:30:00Z", "task": "meditating" }
+  },
+  "updatedAt": "2026-02-28T10:05:00Z"
+}

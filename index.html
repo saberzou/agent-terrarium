@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Terrarium</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      font-family: 'SF Mono', Monaco, monospace;
+      overflow: hidden;
+    }
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+    }
+    #ui {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 30px;
+      background: rgba(0,0,0,0.7);
+      padding: 15px 25px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .agent-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      font-size: 14px;
+    }
+    .agent-emoji { font-size: 20px; }
+    .agent-name { font-weight: bold; }
+    .agent-status {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.2);
+    }
+    .agent-status.working { background: #4CAF50; }
+    .agent-status.idle { background: #2196F3; }
+    .agent-status.exploring { background: #FF9800; }
+    .agent-status.sleeping { background: #9C27B0; }
+    #title {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: rgba(255,255,255,0.8);
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="title">AGENT TERRARIUM</div>
+  <div id="canvas-container"></div>
+  <div id="ui">
+    <div class="agent-badge">
+      <span class="agent-emoji">🐻</span>
+      <span class="agent-name">Atticus</span>
+      <span class="agent-status" id="status-atticus">idle</span>
+    </div>
+    <div class="agent-badge">
+      <span class="agent-emoji">🐯</span>
+      <span class="agent-name">Axel</span>
+      <span class="agent-status" id="status-axel">working</span>
+    </div>
+    <div class="agent-badge">
+      <span class="agent-emoji">🦝</span>
+      <span class="agent-name">Astra</span>
+      <span class="agent-status" id="status-astra">exploring</span>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
+    scene.fog = new THREE.Fog(0x1a1a2e, 20, 60);
+
+    // Isometric camera
+    const aspect = window.innerWidth / window.innerHeight;
+    const d = 12;
+    const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+    camera.position.set(20, 20, 20);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = Math.PI / 2.2;
+    controls.minZoom = 0.5;
+    controls.maxZoom = 2;
+
+    // Lighting based on time
+    const now = new Date();
+    const hour = now.getHours();
+    let lightIntensity = 1;
+    let lightColor = 0xffffff;
+    let ambientIntensity = 0.4;
+
+    if (hour >= 6 && hour < 12) { // Morning
+      lightColor = 0xffe4b5;
+      lightIntensity = 0.8;
+      ambientIntensity = 0.5;
+    } else if (hour >= 12 && hour < 18) { // Afternoon
+      lightColor = 0xffffff;
+      lightIntensity = 1;
+      ambientIntensity = 0.6;
+    } else if (hour >= 18 && hour < 22) { // Evening
+      lightColor = 0xffa500;
+      lightIntensity = 0.7;
+      ambientIntensity = 0.3;
+    } else { // Night
+      lightColor = 0x4169e1;
+      lightIntensity = 0.4;
+      ambientIntensity = 0.2;
+    }
+
+    const ambientLight = new THREE.AmbientLight(lightColor, ambientIntensity);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(lightColor, lightIntensity);
+    dirLight.position.set(10, 20, 10);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    scene.add(dirLight);
+
+    // Helper: create voxel box
+    function createBox(w, h, d, color, x, y, z) {
+      const geometry = new THREE.BoxGeometry(w, h, d);
+      const material = new THREE.MeshStandardMaterial({ 
+        color: color,
+        roughness: 0.8,
+        metalness: 0.1
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    // Agent states
+    const agentStates = {
+      atticus: 'idle',
+      axel: 'working',
+      astra: 'exploring'
+    };
+
+    // Create rooms
+    const rooms = new THREE.Group();
+    scene.add(rooms);
+
+    // Room 1: Atticus's Study (left, warm wood)
+    const room1 = new THREE.Group();
+    room1.position.set(-8, 0, 0);
+    rooms.add(room1);
+
+    // Floor
+    room1.add(createBox(6, 0.2, 6, 0x8B6914, 0, 0.1, 0));
+    // Back wall
+    room1.add(createBox(6, 4, 0.2, 0xA0522D, 0, 2, -3));
+    // Side wall
+    room1.add(createBox(0.2, 4, 6, 0xA0522D, -3, 2, 0));
+    // Bookshelf
+    room1.add(createBox(2, 3, 0.5, 0x654321, -2.5, 1.5, -2.5));
+    // Books (colored boxes)
+    for (let i = 0; i < 8; i++) {
+      const bookColor = [0x8B0000, 0x006400, 0x00008B, 0x4B0082, 0x8B4513][Math.floor(Math.random() * 5)];
+      room1.add(createBox(0.15, 0.6, 0.4, bookColor, -3 + i * 0.25, 2, -2.5));
+    }
+    // Desk
+    room1.add(createBox(2, 0.1, 1, 0x8B4513, -1, 1, -1));
+    room1.add(createBox(0.1, 1, 0.1, 0x654321, -1.8, 0.5, -1.4));
+    room1.add(createBox(0.1, 1, 0.1, 0x654321, -0.2, 0.5, -1.4));
+    // Monitor (glowing)
+    const monitor1 = createBox(0.8, 0.5, 0.05, 0x87CEEB, -1, 1.6, -0.8);
+    monitor1.material.emissive = new THREE.Color(0x87CEEB);
+    monitor1.material.emissiveIntensity = 0.5;
+    room1.add(monitor1);
+    // Armchair
+    room1.add(createBox(1, 0.5, 1, 0x8B4513, 1.5, 0.5, 0));
+    room1.add(createBox(1, 1, 0.2, 0x654321, 1.5, 1, 0.4));
+    // Mug
+    room1.add(createBox(0.15, 0.2, 0.15, 0xFFFFFF, -0.3, 1.15, -0.8));
+    // Lamp
+    const lampLight1 = new THREE.PointLight(0xFFD700, 0.5, 5);
+    lampLight1.position.set(1.5, 2, 1.5);
+    room1.add(lampLight1);
+    room1.add(createBox(0.2, 1.5, 0.2, 0x2F4F4F, 1.5, 0.75, 1.5));
+    room1.add(createBox(0.4, 0.2, 0.4, 0xFFD700, 1.5, 1.6, 1.5));
+
+    // Room 2: Axel's Studio (center, colorful chaos)
+    const room2 = new THREE.Group();
+    room2.position.set(0, 0, 0);
+    rooms.add(room2);
+
+    // Floor with paint splatters (simplified as colored patches)
+    room2.add(createBox(6, 0.2, 6, 0xE8E8E8, 0, 0.1, 0));
+    room2.add(createBox(1, 0.22, 0.8, 0xFF6B35, -1.5, 0.11, 1));
+    room2.add(createBox(0.6, 0.22, 0.6, 0xF7C948, 1.5, 0.11, -1));
+    room2.add(createBox(0.8, 0.22, 0.5, 0x4ECDC4, 0.5, 0.11, 2));
+    // Back wall with canvases
+    room2.add(createBox(6, 4, 0.2, 0xFFFFFF, 0, 2, -3));
+    // Canvases on wall
+    const canvas1 = createBox(1.5, 2, 0.1, 0xFF6B35, -1.5, 2.5, -2.9);
+    room2.add(canvas1);
+    const canvas2 = createBox(1.2, 1.5, 0.1, 0xF7C948, 1.5, 2.2, -2.9);
+    room2.add(canvas2);
+    // Easel
+    room2.add(createBox(0.1, 2.5, 0.1, 0x8B4513, -0.5, 1.25, -1));
+    room2.add(createBox(0.1, 2.5, 0.1, 0x8B4513, 0.5, 1.25, -1));
+    room2.add(createBox(1.2, 0.1, 0.05, 0x8B4513, 0, 2, -1));
+    // Canvas on easel
+    const easelCanvas = createBox(1, 1.2, 0.05, 0xFF6B35, 0, 1.8, -0.95);
+    room2.add(easelCanvas);
+    // Messy couch
+    room2.add(createBox(2, 0.6, 1, 0x4A5568, 2, 0.4, 1.5));
+    room2.add(createBox(2, 1, 0.2, 0x2D3748, 2, 0.8, 2));
+    // Paint supplies
+    room2.add(createBox(0.3, 0.4, 0.3, 0xC0C0C0, 1.8, 0.3, -0.5));
+    room2.add(createBox(0.05, 0.3, 0.05, 0xFF0000, 1.9, 0.55, -0.4));
+    room2.add(createBox(0.05, 0.3, 0.05, 0x00FF00, 1.85, 0.55, -0.5));
+    room2.add(createBox(0.05, 0.3, 0.05, 0x0000FF, 1.75, 0.55, -0.45));
+
+    // Room 3: Astra's Zen Gym (right, natural)
+    const room3 = new THREE.Group();
+    room3.position.set(8, 0, 0);
+    rooms.add(room3);
+
+    // Floor (tatami-like)
+    room3.add(createBox(6, 0.2, 6, 0xE8D5B7, 0, 0.1, 0));
+    // Back wall
+    room3.add(createBox(6, 4, 0.2, 0xA5D6A7, 0, 2, -3));
+    // Bamboo plants
+    for (let i = 0; i < 3; i++) {
+      const x = -2 + i * 2;
+      room3.add(createBox(0.1, 2, 0.1, 0x7CB342, x, 1, -2.8));
+      room3.add(createBox(0.15, 0.3, 0.15, 0x8B4513, x, 0.15, -2.8));
+      // Leaves
+      room3.add(createBox(0.3, 0.1, 0.1, 0x7CB342, x + 0.2, 1.8, -2.8));
+      room3.add(createBox(0.3, 0.1, 0.1, 0x7CB342, x - 0.2, 1.5, -2.8));
+    }
+    // Yoga mat
+    room3.add(createBox(1.5, 0.05, 3, 0x81C784, 0, 0.13, 0.5));
+    // Meditation cushion
+    room3.add(createBox(0.6, 0.3, 0.6, 0x9C27B0, -1.5, 0.25, 1));
+    // Dumbbells
+    room3.add(createBox(0.4, 0.15, 0.15, 0x37474F, 2, 0.18, -1.5));
+    room3.add(createBox(0.15, 0.25, 0.15, 0x78909C, 2.15, 0.18, -1.5));
+    room3.add(createBox(0.15, 0.25, 0.15, 0x78909C, 1.85, 0.18, -1.5));
+    // Shelf with smoothie
+    room3.add(createBox(1, 0.1, 0.3, 0x8D6E63, 2.5, 1.5, -2.5));
+    room3.add(createBox(0.15, 0.25, 0.15, 0xFF6B9D, 2.5, 1.7, -2.5));
+    // Natural light
+    const sunLight = new THREE.DirectionalLight(0xFFF8E1, 0.3);
+    sunLight.position.set(8, 10, 5);
+    room3.add(sunLight);
+
+    // Create voxel characters
+    function createVoxelCharacter(type, x, z) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+
+      let bodyColor, accentColor, detailColor;
+      
+      if (type === 'atticus') { // Bear
+        bodyColor = 0x8B6914;
+        accentColor = 0xD2B48C;
+        detailColor = 0x2F4F4F;
+      } else if (type === 'axel') { // Tiger
+        bodyColor = 0xFF8C00;
+        accentColor = 0x000000;
+        detailColor = 0xFFFFFF;
+      } else { // Astra - Red Panda
+        bodyColor = 0xB7410E;
+        accentColor = 0x2F1B14;
+        detailColor = 0xFFFFFF;
+      }
+
+      // Body
+      const body = createBox(0.6, 0.7, 0.4, bodyColor, 0, 0.6, 0);
+      group.add(body);
+
+      // Belly/chest (lighter)
+      const belly = createBox(0.4, 0.5, 0.05, accentColor, 0, 0.55, 0.18);
+      group.add(belly);
+
+      // Head
+      const head = createBox(0.5, 0.45, 0.45, bodyColor, 0, 1.2, 0);
+      group.add(head);
+
+      // Ears
+      if (type === 'atticus') { // Round bear ears
+        group.add(createBox(0.15, 0.15, 0.1, bodyColor, -0.15, 1.45, 0));
+        group.add(createBox(0.15, 0.15, 0.1, bodyColor, 0.15, 1.45, 0));
+      } else if (type === 'axel') { // Pointed tiger ears
+        group.add(createBox(0.12, 0.2, 0.1, bodyColor, -0.15, 1.48, 0));
+        group.add(createBox(0.12, 0.2, 0.1, bodyColor, 0.15, 1.48, 0));
+        // Stripes on head
+        group.add(createBox(0.52, 0.05, 0.46, accentColor, 0, 1.25, 0));
+        group.add(createBox(0.52, 0.05, 0.46, accentColor, 0, 1.35, 0));
+      } else { // Red panda ears (triangular-ish)
+        group.add(createBox(0.12, 0.18, 0.1, 0x8B4513, -0.15, 1.45, 0));
+        group.add(createBox(0.12, 0.18, 0.1, 0x8B4513, 0.15, 1.45, 0));
+        // White face markings
+        group.add(createBox(0.35, 0.25, 0.05, detailColor, 0, 1.15, 0.21));
+      }
+
+      // Eyes
+      group.add(createBox(0.08, 0.08, 0.02, 0x000000, -0.1, 1.25, 0.23));
+      group.add(createBox(0.08, 0.08, 0.02, 0x000000, 0.1, 1.25, 0.23));
+
+      // Glasses for Atticus
+      if (type === 'atticus') {
+        group.add(createBox(0.12, 0.02, 0.03, 0x2F4F4F, -0.1, 1.25, 0.24));
+        group.add(createBox(0.12, 0.02, 0.03, 0x2F4F4F, 0.1, 1.25, 0.24));
+        group.add(createBox(0.06, 0.02, 0.02, 0x2F4F4F, 0, 1.25, 0.24));
+      }
+
+      // Arms
+      const leftArm = createBox(0.15, 0.5, 0.15, bodyColor, -0.4, 0.7, 0);
+      const rightArm = createBox(0.15, 0.5, 0.15, bodyColor, 0.4, 0.7, 0);
+      group.add(leftArm);
+      group.add(rightArm);
+
+      // Legs
+      group.add(createBox(0.2, 0.4, 0.2, bodyColor, -0.15, 0.2, 0));
+      group.add(createBox(0.2, 0.4, 0.2, bodyColor, 0.15, 0.2, 0));
+
+      // Tail (special features)
+      if (type === 'axel') { // Tiger tail
+        const tail = createBox(0.12, 0.12, 0.6, bodyColor, 0, 0.4, 0.5);
+        group.add(tail);
+        // Stripes
+        group.add(createBox(0.13, 0.13, 0.1, accentColor, 0, 0.4, 0.5));
+        group.add(createBox(0.13, 0.13, 0.1, accentColor, 0, 0.4, 0.7));
+      } else if (type === 'astra') { // Red panda tail (bushy, ringed)
+        const tailGroup = new THREE.Group();
+        tailGroup.position.set(0, 0.4, 0.3);
+        // Multiple segments for bushy look
+        tailGroup.add(createBox(0.2, 0.2, 0.3, bodyColor, 0, 0, 0.15));
+        tailGroup.add(createBox(0.22, 0.22, 0.25, 0x8B4513, 0, 0, 0.4));
+        tailGroup.add(createBox(0.18, 0.18, 0.25, bodyColor, 0, 0, 0.6));
+        tailGroup.add(createBox(0.2, 0.2, 0.2, 0x8B4513, 0, 0, 0.8));
+        group.add(tailGroup);
+      }
+
+      return { group, leftArm, rightArm, body, head, type };
+    }
+
+    // Create agents
+    const agents = {
+      atticus: createVoxelCharacter('atticus', -1, 0),
+      axel: createVoxelCharacter('axel', 0, 0),
+      astra: createVoxelCharacter('astra', 1, 0)
+    };
+
+    room1.add(agents.atticus.group);
+    room2.add(agents.axel.group);
+    room3.add(agents.astra.group);
+
+    // Position agents based on their activities
+    // Atticus: at desk or in chair
+    agents.atticus.group.position.set(-1, 0.25, -1);
+    agents.atticus.group.rotation.y = Math.PI;
+
+    // Axel: at easel
+    agents.axel.group.position.set(0.3, 0.25, -0.5);
+    agents.axel.group.rotation.y = -Math.PI / 2;
+
+    // Astra: on yoga mat
+    agents.astra.group.position.set(0, 0.25, 0.5);
+
+    // Animation functions
+    let time = 0;
+    const zzzParticles = [];
+
+    function animateAgent(agent, state, dt) {
+      const t = time * 2;
+      
+      if (state === 'working') {
+        // Typing/painting motion - arms bob
+        agent.leftArm.rotation.x = Math.sin(t * 3) * 0.3 - 0.5;
+        agent.rightArm.rotation.x = Math.cos(t * 3) * 0.3 - 0.5;
+        agent.body.position.y = 0.6 + Math.sin(t) * 0.01;
+      } else if (state === 'idle') {
+        // Slow breathing
+        agent.body.scale.y = 1 + Math.sin(t * 0.5) * 0.02;
+        agent.leftArm.rotation.x = Math.sin(t * 0.5) * 0.1;
+        agent.rightArm.rotation.x = -Math.sin(t * 0.5) * 0.1;
+      } else if (state === 'exploring') {
+        // Looking around
+        agent.head.rotation.y = Math.sin(t * 0.3) * 0.3;
+        agent.leftArm.rotation.z = Math.sin(t) * 0.1 + 0.2;
+        agent.rightArm.rotation.z = -Math.sin(t) * 0.1 - 0.2;
+      } else if (state === 'sleeping') {
+        // Slumped, gentle breathing
+        agent.body.rotation.x = 0.2;
+        agent.body.scale.y = 1 + Math.sin(t * 0.3) * 0.03;
+        agent.head.rotation.x = 0.3;
+        // Zzz particles
+        if (Math.random() < 0.02) {
+          createZzzParticle(agent.group.position.clone().add(agent.group.parent.position).add(new THREE.Vector3(0, 2, 0)));
+        }
+      }
+    }
+
+    function createZzzParticle(pos) {
+      const zzz = document.createElement('div');
+      zzz.textContent = 'z';
+      zzz.style.cssText = `
+        position: fixed;
+        left: ${window.innerWidth/2}px;
+        top: ${window.innerHeight/2}px;
+        color: white;
+        font-size: 20px;
+        pointer-events: none;
+        opacity: 1;
+        transition: all 2s ease-out;
+      `;
+      document.body.appendChild(zzz);
+      
+      // Project 3D position to screen
+      const vector = pos.clone();
+      vector.project(camera);
+      const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+      
+      zzz.style.left = x + 'px';
+      zzz.style.top = y + 'px';
+      
+      setTimeout(() => {
+        zzz.style.transform = 'translateY(-50px)';
+        zzz.style.opacity = '0';
+      }, 10);
+      
+      setTimeout(() => zzz.remove(), 2000);
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      time += 0.016;
+      
+      animateAgent(agents.atticus, agentStates.atticus, 0.016);
+      animateAgent(agents.axel, agentStates.axel, 0.016);
+      animateAgent(agents.astra, agentStates.astra, 0.016);
+      
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      const aspect = window.innerWidth / window.innerHeight;
+      camera.left = -d * aspect;
+      camera.right = d * aspect;
+      camera.top = d;
+      camera.bottom = -d;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Status cycling for demo
+    const states = ['idle', 'working', 'exploring', 'sleeping'];
+    let stateIndex = 0;
+    
+    setInterval(() => {
+      stateIndex++;
+      const newState = states[stateIndex % states.length];
+      
+      // Cycle through agents
+      if (stateIndex % 3 === 0) {
+        agentStates.atticus = newState;
+        document.getElementById('status-atticus').textContent = newState;
+        document.getElementById('status-atticus').className = 'agent-status ' + newState;
+      } else if (stateIndex % 3 === 1) {
+        agentStates.axel = newState;
+        document.getElementById('status-axel').textContent = newState;
+        document.getElementById('status-axel').className = 'agent-status ' + newState;
+      } else {
+        agentStates.astra = newState;
+        document.getElementById('status-astra').textContent = newState;
+        document.getElementById('status-astra').className = 'agent-status ' + newState;
+      }
+    }, 5000);
+
+    // Load real status (optional)
+    fetch('status.json')
+      .then(r => r.json())
+      .then(data => {
+        if (data.agents) {
+          Object.keys(data.agents).forEach(name => {
+            if (agentStates[name] !== undefined) {
+              agentStates[name] = data.agents[name].status;
+              const el = document.getElementById('status-' + name);
+              if (el) {
+                el.textContent = data.agents[name].status;
+                el.className = 'agent-status ' + data.agents[name].status;
+              }
+            }
+          });
+        }
+      })
+      .catch(() => {/* Use default/demo states */});
+  </script>
+</body>
+</html>
