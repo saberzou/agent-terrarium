@@ -46,7 +46,7 @@
 ## Agent Family
 - **Atticus** 🐻 — Bear. INTJ. Analytical, warm, decisive.
 - **Axel** 🐯 — Tiger. ESFP. Creative, playful, chaotic good.
-- **Astra** 🦝 — Red Panda. He. (Personality TBD)
+- **Astra** 🦝 — Red Panda. He. Life coach & gym buddy. Helpful, knowledgeable, supportive, kind. Saber counts on him for life stuff — health, fitness, personal growth.
 
 ## Saber's Contact
 - **Gmail:** saberzou@gmail.com
