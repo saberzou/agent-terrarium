@@ -43,6 +43,11 @@
 - **Bio:** First person, left-aligned. Links: Email (saberzou@gmail.com), GitHub, X/Twitter
 - **Deploy:** GitHub Pages via `.github/workflows/deploy.yml`
 
+## Agent Family
+- **Atticus** 🐻 — Bear. INTJ. Analytical, warm, decisive.
+- **Axel** 🐯 — Tiger. ESFP. Creative, playful, chaotic good.
+- **Astra** 🦝 — Red Panda. He. (Personality TBD)
+
 ## Saber's Contact
 - **Gmail:** saberzou@gmail.com
 
