@@ -21,7 +21,6 @@
     #canvas-wrap {
       width: 100%;
       max-width: 800px;
-      aspect-ratio: 16 / 9;
       margin-top: 24px;
       position: relative;
       border-radius: 12px;
@@ -32,7 +31,6 @@
     canvas {
       display: block;
       width: 100%;
-      height: 100%;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
@@ -91,8 +89,28 @@
     .card.astra .card-name { color: #D4652A; }
 
     @media (max-width: 600px) {
-      #cards { grid-template-columns: 1fr; }
-      #canvas-wrap { margin-top: 12px; border-radius: 0; }
+      body { padding: 0; }
+      #canvas-wrap {
+        margin-top: 0;
+        border-radius: 0;
+        box-shadow: none;
+        max-width: 100%;
+      }
+      #cards {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 0 16px;
+        margin: 16px auto 32px;
+      }
+      .card {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .card-head { margin-bottom: 0; }
+      .card-avatar { width: 42px; height: 42px; }
+      .card-info { flex: 1; }
     }
   </style>
 </head>
@@ -122,12 +140,42 @@
 
 <script>
 // ─── CONFIG ───
-const W = 480, H = 270;
+let W = 480, H = 270;
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-canvas.width = W;
-canvas.height = H;
-ctx.imageSmoothingEnabled = false;
+let isMobile = window.innerWidth <= 600;
+
+function resizeCanvas() {
+  isMobile = window.innerWidth <= 600;
+  if (isMobile) {
+    W = 320; H = 360;
+  } else {
+    W = 480; H = 270;
+  }
+  canvas.width = W;
+  canvas.height = H;
+  ctx.imageSmoothingEnabled = false;
+  updateZones();
+}
+
+function updateZones() {
+  if (isMobile) {
+    // Vertical stack: desk top, lounge middle, server bottom
+    ZONES.desk   = { x: 20,  y: 20,  w: 280, h: 90,  label: 'WORK' };
+    ZONES.lounge = { x: 20,  y: 120, w: 280, h: 90,  label: 'LOUNGE' };
+    ZONES.server = { x: 20,  y: 220, w: 280, h: 90,  label: 'DEBUG' };
+  } else {
+    ZONES.desk   = { x: 30,  y: 100, w: 130, h: 110, label: 'WORK' };
+    ZONES.lounge = { x: 180, y: 100, w: 120, h: 110, label: 'LOUNGE' };
+    ZONES.server = { x: 320, y: 100, w: 130, h: 110, label: 'DEBUG' };
+  }
+  // Update all agent targets
+  for (const k of Object.keys(AGENTS)) {
+    const t = targetForAgent(k);
+    AGENTS[k].tx = t.x;
+    AGENTS[k].ty = t.y;
+  }
+}
 
 // ─── PALETTE ───
 const PAL = {
@@ -240,15 +288,27 @@ function drawScene() {
   // Sky / bg
   rect(0, 0, W, H, PAL.bg);
 
-  // Wall
-  rect(20, 60, W - 40, 50, PAL.wall);
-  rect(20, 55, W - 40, 8, PAL.wallTop);
+  if (isMobile) {
+    // Mobile: full canvas is floor, zones stacked vertically
+    rect(10, 10, W - 20, H - 20, PAL.floor);
+    ctx.fillStyle = PAL.floorLine;
+    for (let x = 16; x < W - 16; x += 20) {
+      ctx.fillRect(x, 14, 10, H - 28);
+    }
 
-  // Floor
-  rect(20, 110, W - 40, 140, PAL.floor);
-  ctx.fillStyle = PAL.floorLine;
-  for (let x = 30; x < W - 30; x += 24) {
-    ctx.fillRect(x, 115, 12, 130);
+    // Zone dividers
+    ctx.fillStyle = '#3a3530';
+    ctx.fillRect(14, ZONES.lounge.y - 6, W - 28, 2);
+    ctx.fillRect(14, ZONES.server.y - 6, W - 28, 2);
+  } else {
+    // Desktop: wall + floor
+    rect(20, 60, W - 40, 50, PAL.wall);
+    rect(20, 55, W - 40, 8, PAL.wallTop);
+    rect(20, 110, W - 40, 140, PAL.floor);
+    ctx.fillStyle = PAL.floorLine;
+    for (let x = 30; x < W - 30; x += 24) {
+      ctx.fillRect(x, 115, 12, 130);
+    }
   }
 
   // Zone labels
@@ -262,12 +322,12 @@ function drawScene() {
 
   // ─── DESK AREA ───
   const dz = ZONES.desk;
-  // Desks
-  for (let i = 0; i < 3; i++) {
-    const dx = dz.x + 10 + i * 42;
+  const deskCount = isMobile ? 4 : 3;
+  const deskGap = isMobile ? 60 : 42;
+  for (let i = 0; i < deskCount; i++) {
+    const dx = dz.x + 10 + i * deskGap;
     rect(dx, dz.y + 30, 34, 18, PAL.deskWood);
     rect(dx, dz.y + 28, 34, 4, PAL.deskTop);
-    // Monitor
     rect(dx + 8, dz.y + 16, 18, 14, PAL.monitor);
     ctx.fillStyle = PAL.monGlow;
     ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 800 + i) * 0.15;
@@ -277,50 +337,50 @@ function drawScene() {
 
   // ─── LOUNGE ───
   const lz = ZONES.lounge;
-  // Couch
-  rect(lz.x + 15, lz.y + 40, 90, 20, PAL.couch);
-  rect(lz.x + 15, lz.y + 34, 90, 10, PAL.couchSeat);
-  // Cushions
+  const couchW = isMobile ? 120 : 90;
+  rect(lz.x + 15, lz.y + 40, couchW, 20, PAL.couch);
+  rect(lz.x + 15, lz.y + 34, couchW, 10, PAL.couchSeat);
   rect(lz.x + 20, lz.y + 36, 20, 8, '#795548');
-  rect(lz.x + 75, lz.y + 36, 20, 8, '#795548');
+  rect(lz.x + 15 + couchW - 25, lz.y + 36, 20, 8, '#795548');
   // Coffee table
-  rect(lz.x + 40, lz.y + 65, 40, 14, PAL.deskWood);
-  // Mug with steam
-  rect(lz.x + 55, lz.y + 61, 8, 8, '#ddd');
+  rect(lz.x + 40 + (isMobile ? 20 : 0), lz.y + 65, 40, 14, PAL.deskWood);
+  rect(lz.x + 55 + (isMobile ? 20 : 0), lz.y + 61, 8, 8, '#ddd');
   const st = Date.now() / 400;
   ctx.fillStyle = '#fff';
   ctx.globalAlpha = 0.3;
-  ctx.fillRect(lz.x + 57 + Math.sin(st) * 2, lz.y + 53 - (st % 3) * 3, 4, 4);
+  ctx.fillRect(lz.x + 57 + (isMobile ? 20 : 0) + Math.sin(st) * 2, lz.y + 53 - (st % 3) * 3, 4, 4);
   ctx.globalAlpha = 1;
 
   // ─── SERVER ROOM ───
   const sz = ZONES.server;
-  for (let i = 0; i < 3; i++) {
-    const sx = sz.x + 10 + i * 40;
-    rect(sx, sz.y + 10, 30, 80, PAL.serverRack);
-    rect(sx + 2, sz.y + 12, 26, 76, PAL.serverFrame);
-    // Blinking LEDs
+  const rackCount = isMobile ? 4 : 3;
+  const rackGap = isMobile ? 60 : 40;
+  for (let i = 0; i < rackCount; i++) {
+    const sx = sz.x + 10 + i * rackGap;
+    const rackH = isMobile ? 60 : 80;
+    rect(sx, sz.y + 10, 30, rackH, PAL.serverRack);
+    rect(sx + 2, sz.y + 12, 26, rackH - 4, PAL.serverFrame);
     for (let j = 0; j < 6; j++) {
       const tick = Math.floor(Date.now() / 150 + i * 7 + j * 3);
       const colors = ['#f44336', '#4caf50', '#2196f3', '#ffc107'];
       ctx.fillStyle = colors[tick % colors.length];
       ctx.globalAlpha = (tick + j) % 4 === 0 ? 0.9 : 0.2;
-      ctx.fillRect(sx + 6 + (j % 3) * 8, sz.y + 18 + Math.floor(j / 3) * 30 + (j % 2) * 12, 4, 3);
+      ctx.fillRect(sx + 6 + (j % 3) * 8, sz.y + 18 + Math.floor(j / 3) * 20 + (j % 2) * 8, 4, 3);
     }
     ctx.globalAlpha = 1;
   }
 
   // ─── DECORATIONS ───
-  // Plants
-  drawPlant(26, 70);
-  drawPlant(W - 50, 70);
-  drawPlant(175, 90);
-
-  // Clock
-  drawClock(W / 2, 68);
-
-  // Cat
-  drawCat(360, 240);
+  if (!isMobile) {
+    drawPlant(26, 70);
+    drawPlant(W - 50, 70);
+    drawPlant(175, 90);
+    drawClock(W / 2, 68);
+    drawCat(360, 240);
+  } else {
+    drawPlant(W - 40, 25);
+    drawCat(W - 50, H - 40);
+  }
 
   // Title plaque
   rect(W / 2 - 80, H - 22, 160, 18, '#3e2723');
@@ -617,6 +677,8 @@ function frame() {
 }
 
 // Init
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 fetchStatus();
 setInterval(fetchStatus, 30000);
 setInterval(demoCycle, 12000);
