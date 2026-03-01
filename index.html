@@ -59,7 +59,14 @@
       gap: 10px;
       margin-bottom: 8px;
     }
-    .card-emoji { font-size: 28px; }
+    .card-emoji { font-size: 28px; display: none; }
+    .card-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
     .card-name {
       font-family: 'Pixelify Sans', sans-serif;
       font-size: 18px;
@@ -97,17 +104,17 @@
 
 <div id="cards">
   <div class="card atticus" id="card-atticus">
-    <div class="card-head"><span class="card-emoji">🐻</span><span class="card-name">Atticus</span></div>
+    <div class="card-head"><img class="card-avatar" src="images/atticus.jpg" alt="Atticus"><span class="card-name">Atticus</span></div>
     <div class="card-status">idle</div>
     <div class="card-task"></div>
   </div>
   <div class="card axel" id="card-axel">
-    <div class="card-head"><span class="card-emoji">🐯</span><span class="card-name">Axel</span></div>
+    <div class="card-head"><img class="card-avatar" src="images/axel.jpg" alt="Axel"><span class="card-name">Axel</span></div>
     <div class="card-status">idle</div>
     <div class="card-task"></div>
   </div>
   <div class="card astra" id="card-astra">
-    <div class="card-head"><span class="card-emoji">🦝</span><span class="card-name">Astra</span></div>
+    <div class="card-head"><img class="card-avatar" src="images/astra.jpg" alt="Astra"><span class="card-name">Astra</span></div>
     <div class="card-status">idle</div>
     <div class="card-task"></div>
   </div>
