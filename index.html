@@ -3,669 +3,617 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Terrarium 🏢</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>Agent Terrarium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #0d0d15;
-      font-family: 'Inter', sans-serif;
+      background: #111;
       color: #e8e8e8;
+      font-family: 'DM Sans', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      overflow-x: hidden;
     }
-    #header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+
+    #canvas-wrap {
       width: 100%;
-      max-width: 900px;
-      margin-bottom: 15px;
-    }
-    #header h1 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 14px;
-      color: #ffd700;
-      text-shadow: 2px 2px 0 #b8860b;
-    }
-    #time-display {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 10px;
-      color: #888;
-    }
-    #canvas-container {
+      max-width: 800px;
+      aspect-ratio: 16 / 9;
+      margin-top: 24px;
       position: relative;
-      border: 4px solid #2a2a3e;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      cursor: default;
     }
     canvas {
       display: block;
+      width: 100%;
+      height: 100%;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
-    #status-panel {
+
+    #cards {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
+      gap: 14px;
       width: 100%;
-      max-width: 900px;
-      margin-top: 20px;
+      max-width: 800px;
+      margin: 20px auto 40px;
+      padding: 0 12px;
     }
-    .agent-card {
-      background: #1a1a2e;
-      border: 2px solid #2a2a3e;
-      border-radius: 8px;
-      padding: 15px;
+    .card {
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid #2a2a2a;
+      transition: border-color .3s;
+    }
+    .card-head {
       display: flex;
       align-items: center;
-      gap: 12px;
-      transition: border-color 0.3s;
+      gap: 10px;
+      margin-bottom: 8px;
     }
-    .agent-card.atticus { border-color: #8B6914; }
-    .agent-card.axel { border-color: #FF8C00; }
-    .agent-card.astra { border-color: #B7410E; }
-    .agent-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-    }
-    .atticus .agent-avatar { background: #8B691420; }
-    .axel .agent-avatar { background: #FF8C0020; }
-    .astra .agent-avatar { background: #B7410E20; }
-    .agent-info h3 {
-      font-size: 14px;
+    .card-emoji { font-size: 28px; }
+    .card-name {
+      font-family: 'Pixelify Sans', sans-serif;
+      font-size: 18px;
       font-weight: 600;
-      margin-bottom: 4px;
     }
-    .agent-info .status {
-      font-size: 12px;
+    .card-status {
+      font-size: 13px;
       color: #888;
       text-transform: capitalize;
     }
-    .agent-info .task {
-      font-size: 11px;
-      color: #666;
+    .card-task {
+      font-size: 12px;
+      color: #555;
       margin-top: 4px;
+      min-height: 16px;
     }
-    #memo-section {
-      width: 100%;
-      max-width: 900px;
-      margin-top: 20px;
-      background: #2d2a1e;
-      border: 3px solid #5d4a2e;
-      border-radius: 8px;
-      padding: 20px;
-      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23f4e4c1" opacity="0.1"/><circle cx="50" cy="50" r="30" fill="none" stroke="%23c4a574" opacity="0.3"/></svg>');
-    }
-    #memo-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 10px;
-      color: #c4a574;
-      text-align: center;
-      margin-bottom: 10px;
-      letter-spacing: 2px;
-    }
-    #memo-date {
-      font-size: 11px;
-      color: #888;
-      text-align: right;
-      margin-bottom: 8px;
-    }
-    #memo-content {
-      font-size: 13px;
-      line-height: 1.7;
-      color: #3b3b32;
-      background: #f4e4c1;
-      padding: 15px;
-      border-radius: 4px;
-      min-height: 80px;
-    }
-    .loading {
-      text-align: center;
-      color: #666;
-      font-style: italic;
-    }
-    @media (max-width: 768px) {
-      #status-panel {
-        grid-template-columns: 1fr;
-      }
-      #header h1 {
-        font-size: 10px;
-      }
+    .card.atticus { border-color: #8B6914; }
+    .card.axel { border-color: #FF8C00; }
+    .card.astra { border-color: #B7410E; }
+    .card.atticus .card-name { color: #C49B30; }
+    .card.axel .card-name { color: #FF8C00; }
+    .card.astra .card-name { color: #D4652A; }
+
+    @media (max-width: 600px) {
+      #cards { grid-template-columns: 1fr; }
+      #canvas-wrap { margin-top: 12px; border-radius: 0; }
     }
   </style>
 </head>
 <body>
-  <div id="header">
-    <h1>AGENT TERRARIUM 🏢</h1>
-    <div id="time-display">--:--</div>
-  </div>
-  
-  <div id="canvas-container">
-    <canvas id="office" width="640" height="360"></canvas>
-  </div>
-  
-  <div id="status-panel">
-    <div class="agent-card atticus" id="card-atticus">
-      <div class="agent-avatar">🐻</div>
-      <div class="agent-info">
-        <h3>Atticus</h3>
-        <div class="status">Loading...</div>
-        <div class="task"></div>
-      </div>
-    </div>
-    <div class="agent-card axel" id="card-axel">
-      <div class="agent-avatar">🐯</div>
-      <div class="agent-info">
-        <h3>Axel</h3>
-        <div class="status">Loading...</div>
-        <div class="task"></div>
-      </div>
-    </div>
-    <div class="agent-card astra" id="card-astra">
-      <div class="agent-avatar">🦝</div>
-      <div class="agent-info">
-        <h3>Astra</h3>
-        <div class="status">Loading...</div>
-        <div class="task"></div>
-      </div>
-    </div>
-  </div>
-  
-  <div id="memo-section">
-    <div id="memo-title">— YESTERDAY'S NOTES —</div>
-    <div id="memo-date">--</div>
-    <div id="memo-content">
-      <div class="loading">Loading yesterday's notes...</div>
-    </div>
-  </div>
 
-  <script>
-    // Canvas setup
-    const canvas = document.getElementById('office');
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    
-    // Scale for high DPI
-    const scale = 2;
-    canvas.style.width = '640px';
-    canvas.style.height = '360px';
-    
-    // Office areas
-    const AREAS = {
-      desk: { x: 80, y: 180, width: 160, height: 140, name: 'Desk Area' },
-      break: { x: 260, y: 180, width: 120, height: 140, name: 'Break Room' },
-      server: { x: 400, y: 180, width: 160, height: 140, name: 'Server Room' },
-      meeting: { x: 240, y: 60, width: 160, height: 100, name: 'Meeting Spot' }
-    };
-    
-    // Agent data
-    const agents = {
-      atticus: { name: 'Atticus', emoji: '🐻', color: '#8B6914', x: 140, y: 240, targetX: 140, targetY: 240, status: 'idle', walkFrame: 0, bubble: null, bubbleTime: 0 },
-      axel: { name: 'Axel', emoji: '🐯', color: '#FF8C00', x: 320, y: 240, targetX: 320, targetY: 240, status: 'working', walkFrame: 0, bubble: null, bubbleTime: 0 },
-      astra: { name: 'Astra', emoji: '🦝', color: '#B7410E', x: 480, y: 240, targetX: 480, targetY: 240, status: 'exploring', walkFrame: 0, bubble: null, bubbleTime: 0 }
-    };
-    
-    // Thought bubbles per agent
-    const THOUGHTS = {
-      atticus: [
-        "Optimizing the pipeline...",
-        "This needs more tests.",
-        "Coffee break? No, one more commit.",
-        "Interesting pattern here...",
-        "Let's refactor that.",
-        "Working on it!",
-        "Hmm, let me think...",
-        "Almost done..."
-      ],
-      axel: [
-        "Let's try something wild!",
-        "Colors need more contrast...",
-        "Ship it! 🚀",
-        "What if we flip the whole thing?",
-        "This is looking good!",
-        "Creative mode: ON",
-        "Let's paint the town!",
-        "Art is happening!"
-      ],
-      astra: [
-        "Remember to stretch!",
-        "Good progress today.",
-        "Deep breath, then debug.",
-        "Stay hydrated! 💧",
-        "You've got this!",
-        "Take breaks often.",
-        "Form is everything.",
-        "Balance is key."
-      ]
-    };
-    
-    // Get position for status
-    function getPositionForStatus(status, agentKey) {
-      const offsets = { atticus: 0, axel: 40, astra: -40 };
-      const offset = offsets[agentKey] || 0;
-      
-      switch(status) {
-        case 'working': return { x: AREAS.desk.x + 40 + offset, y: AREAS.desk.y + 60 };
-        case 'idle': return { x: AREAS.break.x + 30 + (offset/2), y: AREAS.break.y + 50 };
-        case 'exploring': return { x: AREAS.meeting.x + 50 + offset, y: AREAS.meeting.y + 40 };
-        case 'error': return { x: AREAS.server.x + 40 + offset, y: AREAS.server.y + 60 };
-        case 'sleeping': return { x: AREAS.break.x + 30 + (offset/2), y: AREAS.break.y + 50 };
-        default: return { x: AREAS.break.x + 30, y: AREAS.break.y + 50 };
+<div id="canvas-wrap">
+  <canvas id="c"></canvas>
+</div>
+
+<div id="cards">
+  <div class="card atticus" id="card-atticus">
+    <div class="card-head"><span class="card-emoji">🐻</span><span class="card-name">Atticus</span></div>
+    <div class="card-status">idle</div>
+    <div class="card-task"></div>
+  </div>
+  <div class="card axel" id="card-axel">
+    <div class="card-head"><span class="card-emoji">🐯</span><span class="card-name">Axel</span></div>
+    <div class="card-status">idle</div>
+    <div class="card-task"></div>
+  </div>
+  <div class="card astra" id="card-astra">
+    <div class="card-head"><span class="card-emoji">🦝</span><span class="card-name">Astra</span></div>
+    <div class="card-status">idle</div>
+    <div class="card-task"></div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───
+const W = 480, H = 270;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+canvas.width = W;
+canvas.height = H;
+ctx.imageSmoothingEnabled = false;
+
+// ─── PALETTE ───
+const PAL = {
+  bg: '#16161a',
+  floor: '#2b2520',
+  floorLine: '#3a3530',
+  wall: '#3e352e',
+  wallTop: '#524840',
+  deskWood: '#5d4037',
+  deskTop: '#6d4c41',
+  monitor: '#0a0a0f',
+  monGlow: '#4fc3f7',
+  couch: '#5d4037',
+  couchSeat: '#6d4c41',
+  serverRack: '#37474f',
+  serverFrame: '#263238',
+  plant: '#2e7d32',
+  plantLight: '#66bb6a',
+  gold: '#c4a040',
+  textDim: '#666',
+};
+
+// ─── AREAS ───
+const ZONES = {
+  desk:    { x: 30,  y: 100, w: 130, h: 110, label: 'WORK' },
+  lounge:  { x: 180, y: 100, w: 120, h: 110, label: 'LOUNGE' },
+  server:  { x: 320, y: 100, w: 130, h: 110, label: 'DEBUG' },
+};
+
+// ─── AGENTS ───
+const AGENTS = {
+  atticus: {
+    name: 'Atticus', emoji: '🐻', status: 'idle', task: '',
+    // body colors
+    body: '#8B6914', belly: '#D2B48C', ear: '#6B4F10', eye: '#111',
+    x: 240, y: 180, tx: 240, ty: 180,
+    bubble: null, bubbleAt: 0,
+  },
+  axel: {
+    name: 'Axel', emoji: '🐯', status: 'idle', task: '',
+    body: '#E88A00', belly: '#fff3e0', ear: '#C46A00', eye: '#111', stripe: '#222',
+    x: 200, y: 180, tx: 200, ty: 180,
+    bubble: null, bubbleAt: 0,
+  },
+  astra: {
+    name: 'Astra', emoji: '🦝', status: 'idle', task: '',
+    body: '#B7410E', belly: '#F5DEB3', ear: '#8B3A0E', eye: '#111', mask: '#fff',
+    x: 280, y: 180, tx: 280, ty: 180,
+    bubble: null, bubbleAt: 0,
+  },
+};
+
+const STATUS_ZONE = {
+  working:   'desk',
+  idle:      'lounge',
+  exploring: 'lounge',
+  error:     'server',
+  sleeping:  'lounge',
+};
+
+// Agent slot offsets within zones so they don't overlap
+const SLOT_OFFSETS = {
+  atticus: { x: 0, y: 0 },
+  axel:    { x: 35, y: 8 },
+  astra:   { x: 70, y: -4 },
+};
+
+function targetForAgent(key) {
+  const a = AGENTS[key];
+  const zone = ZONES[STATUS_ZONE[a.status] || 'lounge'];
+  const slot = SLOT_OFFSETS[key];
+  return {
+    x: zone.x + 20 + slot.x,
+    y: zone.y + 50 + slot.y,
+  };
+}
+
+// ─── THOUGHTS ───
+const THOUGHTS = {
+  atticus: {
+    working:  ["Refactoring...", "One more test.", "Almost there.", "Shipping soon."],
+    idle:     ["Thinking.", "Hmm.", "Coffee time?", "Reading docs."],
+    error:    ["Found it.", "Tracing...", "Stack trace says...", "Isolating."],
+    exploring:["Interesting.", "Let me dig.", "Curious.", "What if..."],
+    sleeping: ["zzz", "..."],
+  },
+  axel: {
+    working:  ["Ship it! 🚀", "Wild idea incoming.", "Trust the process.", "Painting pixels."],
+    idle:     ["Bored.", "Let's vibe.", "What's next?", "Nap time?"],
+    error:    ["Oops.", "My bad?", "Creative debugging!", "Ctrl+Z."],
+    exploring:["Ooh shiny!", "New canvas!", "What's over here?", "Adventure!"],
+    sleeping: ["zzz", "purrrr"],
+  },
+  astra: {
+    working:  ["Stay focused.", "Good pace.", "You got this.", "One step at a time."],
+    idle:     ["Stretch break!", "Breathe.", "Hydrate! 💧", "Rest is work too."],
+    error:    ["Stay calm.", "We'll fix it.", "Deep breath first.", "Isolate & solve."],
+    exploring:["Learning.", "New perspective.", "Growing.", "Open mind."],
+    sleeping: ["zzz", "peaceful..."],
+  },
+};
+
+// ─── DRAW HELPERS ───
+function rect(x, y, w, h, c) {
+  ctx.fillStyle = c;
+  ctx.fillRect(Math.round(x), Math.round(y), w, h);
+}
+
+function drawScene() {
+  // Sky / bg
+  rect(0, 0, W, H, PAL.bg);
+
+  // Wall
+  rect(20, 60, W - 40, 50, PAL.wall);
+  rect(20, 55, W - 40, 8, PAL.wallTop);
+
+  // Floor
+  rect(20, 110, W - 40, 140, PAL.floor);
+  ctx.fillStyle = PAL.floorLine;
+  for (let x = 30; x < W - 30; x += 24) {
+    ctx.fillRect(x, 115, 12, 130);
+  }
+
+  // Zone labels
+  ctx.fillStyle = '#333';
+  ctx.font = '7px "Pixelify Sans", monospace';
+  ctx.textAlign = 'center';
+  for (const [, z] of Object.entries(ZONES)) {
+    ctx.fillText(z.label, z.x + z.w / 2, z.y - 2);
+  }
+  ctx.textAlign = 'left';
+
+  // ─── DESK AREA ───
+  const dz = ZONES.desk;
+  // Desks
+  for (let i = 0; i < 3; i++) {
+    const dx = dz.x + 10 + i * 42;
+    rect(dx, dz.y + 30, 34, 18, PAL.deskWood);
+    rect(dx, dz.y + 28, 34, 4, PAL.deskTop);
+    // Monitor
+    rect(dx + 8, dz.y + 16, 18, 14, PAL.monitor);
+    ctx.fillStyle = PAL.monGlow;
+    ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 800 + i) * 0.15;
+    ctx.fillRect(dx + 10, dz.y + 18, 14, 10);
+    ctx.globalAlpha = 1;
+  }
+
+  // ─── LOUNGE ───
+  const lz = ZONES.lounge;
+  // Couch
+  rect(lz.x + 15, lz.y + 40, 90, 20, PAL.couch);
+  rect(lz.x + 15, lz.y + 34, 90, 10, PAL.couchSeat);
+  // Cushions
+  rect(lz.x + 20, lz.y + 36, 20, 8, '#795548');
+  rect(lz.x + 75, lz.y + 36, 20, 8, '#795548');
+  // Coffee table
+  rect(lz.x + 40, lz.y + 65, 40, 14, PAL.deskWood);
+  // Mug with steam
+  rect(lz.x + 55, lz.y + 61, 8, 8, '#ddd');
+  const st = Date.now() / 400;
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.3;
+  ctx.fillRect(lz.x + 57 + Math.sin(st) * 2, lz.y + 53 - (st % 3) * 3, 4, 4);
+  ctx.globalAlpha = 1;
+
+  // ─── SERVER ROOM ───
+  const sz = ZONES.server;
+  for (let i = 0; i < 3; i++) {
+    const sx = sz.x + 10 + i * 40;
+    rect(sx, sz.y + 10, 30, 80, PAL.serverRack);
+    rect(sx + 2, sz.y + 12, 26, 76, PAL.serverFrame);
+    // Blinking LEDs
+    for (let j = 0; j < 6; j++) {
+      const tick = Math.floor(Date.now() / 150 + i * 7 + j * 3);
+      const colors = ['#f44336', '#4caf50', '#2196f3', '#ffc107'];
+      ctx.fillStyle = colors[tick % colors.length];
+      ctx.globalAlpha = (tick + j) % 4 === 0 ? 0.9 : 0.2;
+      ctx.fillRect(sx + 6 + (j % 3) * 8, sz.y + 18 + Math.floor(j / 3) * 30 + (j % 2) * 12, 4, 3);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ─── DECORATIONS ───
+  // Plants
+  drawPlant(26, 70);
+  drawPlant(W - 50, 70);
+  drawPlant(175, 90);
+
+  // Clock
+  drawClock(W / 2, 68);
+
+  // Cat
+  drawCat(360, 240);
+
+  // Title plaque
+  rect(W / 2 - 80, H - 22, 160, 18, '#3e2723');
+  ctx.fillStyle = PAL.gold;
+  ctx.font = '8px "Pixelify Sans", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('ATTICUS \u00d7 AXEL \u00d7 ASTRA', W / 2, H - 10);
+  ctx.textAlign = 'left';
+}
+
+function drawPlant(x, y) {
+  rect(x, y + 10, 14, 14, '#4a3c2e');
+  rect(x + 2, y + 6, 10, 10, PAL.plant);
+  rect(x + 4, y, 6, 8, PAL.plantLight);
+}
+
+function drawClock(cx, cy) {
+  rect(cx - 10, cy - 10, 20, 20, '#333');
+  rect(cx - 8, cy - 8, 16, 16, '#1a1a1a');
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  ctx.strokeStyle = PAL.gold;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.sin((h % 12 + m / 60) * Math.PI / 6) * 5, cy - Math.cos((h % 12 + m / 60) * Math.PI / 6) * 5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.sin(m * Math.PI / 30) * 7, cy - Math.cos(m * Math.PI / 30) * 7);
+  ctx.stroke();
+}
+
+let catBlink = 0;
+function drawCat(x, y) {
+  // Body
+  rect(x, y, 16, 10, '#c49040');
+  // Head
+  rect(x + 2, y - 6, 8, 8, '#c49040');
+  // Ears
+  rect(x + 1, y - 8, 4, 4, '#c49040');
+  rect(x + 7, y - 8, 4, 4, '#c49040');
+  // Tail
+  rect(x + 14, y + 2, 8, 4, '#c49040');
+  rect(x + 20, y, 4, 4, '#c49040');
+  // Eyes (blink)
+  if (Math.floor(Date.now() / 3000) % 5 === 0) {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(x + 4, y - 3, 2, 1);
+    ctx.fillRect(x + 7, y - 3, 2, 1);
+  } else {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(x + 4, y - 4, 2, 2);
+    ctx.fillRect(x + 7, y - 4, 2, 2);
+  }
+  // Zzz
+  if (Math.floor(Date.now() / 1500) % 3 < 2) {
+    ctx.fillStyle = '#555';
+    ctx.font = '6px monospace';
+    ctx.fillText('z', x + 14, y - 8);
+    ctx.fillText('z', x + 18, y - 13);
+  }
+}
+
+// ─── DRAW AGENT ───
+function drawAgent(key) {
+  const a = AGENTS[key];
+  const bob = Math.sin(Date.now() / 350 + key.charCodeAt(0)) * 1.5;
+  const x = Math.round(a.x);
+  const y = Math.round(a.y + bob);
+
+  // Move toward target
+  const dx = a.tx - a.x, dy = a.ty - a.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist > 1) {
+    a.x += dx * 0.04;
+    a.y += dy * 0.04;
+  }
+
+  const isWalking = dist > 3;
+  const walkOff = isWalking ? Math.sin(Date.now() / 100) * 2 : 0;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(x + 6, y + 18, 8, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body (12x14 blob)
+  rect(x, y, 12, 14, a.body);
+  // Belly
+  rect(x + 2, y + 5, 8, 8, a.belly);
+
+  // Ears
+  rect(x - 1, y - 4, 5, 5, a.ear || a.body);
+  rect(x + 8, y - 4, 5, 5, a.ear || a.body);
+  // Inner ears
+  rect(x, y - 3, 3, 3, a.belly);
+  rect(x + 9, y - 3, 3, 3, a.belly);
+
+  // Eyes
+  ctx.fillStyle = a.eye;
+  if (a.status === 'sleeping') {
+    // Closed eyes
+    ctx.fillRect(x + 2, y + 2, 3, 1);
+    ctx.fillRect(x + 7, y + 2, 3, 1);
+  } else {
+    ctx.fillRect(x + 3, y + 1, 2, 2);
+    ctx.fillRect(x + 7, y + 1, 2, 2);
+    // Eye shine
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 3, y + 1, 1, 1);
+    ctx.fillRect(x + 7, y + 1, 1, 1);
+  }
+
+  // Tiger stripes
+  if (a.stripe) {
+    ctx.fillStyle = a.stripe;
+    ctx.globalAlpha = 0.35;
+    ctx.fillRect(x + 1, y + 2, 2, 6);
+    ctx.fillRect(x + 9, y + 2, 2, 6);
+    ctx.fillRect(x + 5, y, 2, 4);
+    ctx.globalAlpha = 1;
+  }
+
+  // Red panda face mask
+  if (a.mask) {
+    ctx.fillStyle = a.mask;
+    ctx.globalAlpha = 0.5;
+    ctx.fillRect(x + 2, y - 1, 3, 3);
+    ctx.fillRect(x + 7, y - 1, 3, 3);
+    ctx.globalAlpha = 1;
+  }
+
+  // Legs (walk animation)
+  rect(x + 1 + walkOff, y + 13, 4, 4, a.body);
+  rect(x + 7 - walkOff, y + 13, 4, 4, a.body);
+
+  // Red panda tail
+  if (key === 'astra') {
+    const tailBob = Math.sin(Date.now() / 500) * 1;
+    rect(x + 12, y + 6 + tailBob, 6, 4, a.body);
+    rect(x + 16, y + 4 + tailBob, 4, 4, '#8B3A0E');
+    rect(x + 18, y + 6 + tailBob, 4, 3, a.body);
+  }
+
+  // Status dot
+  const dotColors = { working: '#4caf50', idle: '#ffc107', exploring: '#2196f3', error: '#f44336', sleeping: '#9c27b0' };
+  ctx.fillStyle = dotColors[a.status] || '#888';
+  ctx.beginPath();
+  ctx.arc(x + 14, y - 2, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Sleeping zzz
+  if (a.status === 'sleeping') {
+    ctx.fillStyle = '#888';
+    ctx.font = '6px monospace';
+    const t = Date.now() / 800;
+    ctx.fillText('z', x + 14, y - 6 - (t % 3) * 2);
+    ctx.fillText('z', x + 18, y - 10 - (t % 3) * 2);
+  }
+
+  // Name
+  ctx.fillStyle = '#aaa';
+  ctx.font = '7px "Pixelify Sans", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(a.name, x + 6, y - 8);
+  ctx.textAlign = 'left';
+}
+
+// ─── BUBBLES ───
+function maybeBubble(key) {
+  const a = AGENTS[key];
+  if (a.bubble && Date.now() - a.bubbleAt > 3500) a.bubble = null;
+  if (a.bubble) return;
+  if (Math.random() > 0.003) return;
+
+  const pool = THOUGHTS[key][a.status] || THOUGHTS[key].idle;
+  a.bubble = pool[Math.floor(Math.random() * pool.length)];
+  a.bubbleAt = Date.now();
+}
+
+function drawBubble(key) {
+  const a = AGENTS[key];
+  if (!a.bubble) return;
+
+  const age = Date.now() - a.bubbleAt;
+  let alpha = 1;
+  if (age < 200) alpha = age / 200;
+  else if (age > 3000) alpha = 1 - (age - 3000) / 500;
+  if (alpha <= 0) return;
+
+  const bx = Math.round(a.x) + 6;
+  const by = Math.round(a.y) - 18;
+  const text = a.bubble;
+  const tw = text.length * 4.5 + 12;
+
+  ctx.globalAlpha = alpha;
+
+  // Bubble bg
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.roundRect(bx - tw / 2, by - 8, tw, 14, 3);
+  ctx.fill();
+  // Pointer
+  ctx.beginPath();
+  ctx.moveTo(bx - 3, by + 6);
+  ctx.lineTo(bx, by + 10);
+  ctx.lineTo(bx + 3, by + 6);
+  ctx.fill();
+
+  // Text
+  ctx.fillStyle = '#222';
+  ctx.font = '6px "Pixelify Sans", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, bx, by + 2);
+  ctx.textAlign = 'left';
+
+  ctx.globalAlpha = 1;
+}
+
+// ─── TIME OF DAY ───
+function timeOverlay() {
+  const h = new Date().getHours();
+  let c, a;
+  if (h >= 6 && h < 12)       { c = '255,200,100'; a = 0.08; }
+  else if (h >= 12 && h < 18) { c = '255,255,255'; a = 0.03; }
+  else if (h >= 18 && h < 22) { c = '255,150,70';  a = 0.12; }
+  else                         { c = '40,40,100';   a = 0.25; }
+  ctx.fillStyle = `rgba(${c},${a})`;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// ─── STATUS CARDS ───
+function updateCards() {
+  for (const [key, a] of Object.entries(AGENTS)) {
+    const card = document.getElementById('card-' + key);
+    if (!card) continue;
+    card.querySelector('.card-status').textContent = a.status;
+    card.querySelector('.card-task').textContent = a.task || '';
+  }
+}
+
+// ─── FETCH ───
+async function fetchStatus() {
+  try {
+    const r = await fetch('status.json?t=' + Date.now());
+    const d = await r.json();
+    if (d.agents) {
+      for (const [k, info] of Object.entries(d.agents)) {
+        if (!AGENTS[k]) continue;
+        AGENTS[k].status = info.status || 'idle';
+        AGENTS[k].task = info.task || '';
+        const t = targetForAgent(k);
+        AGENTS[k].tx = t.x;
+        AGENTS[k].ty = t.y;
       }
     }
-    
-    // Draw pixel rectangle
-    function drawPixelRect(x, y, w, h, color) {
-      ctx.fillStyle = color;
-      ctx.fillRect(Math.floor(x), Math.floor(y), w, h);
-    }
-    
-    // Draw office background
-    function drawOffice() {
-      // Background
-      drawPixelRect(0, 0, 640, 360, '#1a1a2e');
-      
-      // Floor
-      drawPixelRect(40, 140, 560, 200, '#2a2520');
-      // Floor pattern
-      ctx.fillStyle = '#3a3530';
-      for(let x = 50; x < 580; x += 40) {
-        ctx.fillRect(x, 150, 20, 180);
-      }
-      
-      // Desk Area
-      drawPixelRect(AREAS.desk.x - 10, AREAS.desk.y - 10, AREAS.desk.width + 20, AREAS.desk.height + 20, '#1a1a2e');
-      drawPixelRect(AREAS.desk.x, AREAS.desk.y, AREAS.desk.width, AREAS.desk.height, '#3e2723');
-      // Desks
-      drawPixelRect(AREAS.desk.x + 20, AREAS.desk.y + 20, 40, 30, '#5d4037');
-      drawPixelRect(AREAS.desk.x + 70, AREAS.desk.y + 20, 40, 30, '#5d4037');
-      drawPixelRect(AREAS.desk.x + 120, AREAS.desk.y + 20, 40, 30, '#5d4037');
-      // Monitors
-      drawPixelRect(AREAS.desk.x + 25, AREAS.desk.y + 15, 30, 20, '#1a1a2e');
-      drawPixelRect(AREAS.desk.x + 75, AREAS.desk.y + 15, 30, 20, '#1a1a2e');
-      drawPixelRect(AREAS.desk.x + 125, AREAS.desk.y + 15, 30, 20, '#1a1a2e');
-      // Monitor glow
-      ctx.fillStyle = '#4fc3f7';
-      ctx.globalAlpha = 0.3;
-      ctx.fillRect(AREAS.desk.x + 27, AREAS.desk.y + 17, 26, 16);
-      ctx.fillRect(AREAS.desk.x + 77, AREAS.desk.y + 17, 26, 16);
-      ctx.fillRect(AREAS.desk.x + 127, AREAS.desk.y + 17, 26, 16);
-      ctx.globalAlpha = 1;
-      
-      // Break Room
-      drawPixelRect(AREAS.break.x - 10, AREAS.break.y - 10, AREAS.break.width + 20, AREAS.break.height + 20, '#1a1a2e');
-      drawPixelRect(AREAS.break.x, AREAS.break.y, AREAS.break.width, AREAS.break.height, '#4a3c31');
-      // Couch
-      drawPixelRect(AREAS.break.x + 20, AREAS.break.y + 40, 80, 30, '#6d4c41');
-      drawPixelRect(AREAS.break.x + 20, AREAS.break.y + 30, 80, 15, '#5d4037');
-      // Coffee machine
-      drawPixelRect(AREAS.break.x + 20, AREAS.break.y + 90, 25, 30, '#424242');
-      // Steam particles
-      const steamTime = Date.now() / 500;
-      ctx.fillStyle = '#ffffff';
-      ctx.globalAlpha = 0.4;
-      ctx.fillRect(AREAS.break.x + 27 + Math.sin(steamTime) * 3, AREAS.break.y + 80 - (steamTime % 3) * 5, 8, 8);
-      ctx.globalAlpha = 1;
-      
-      // Server Room
-      drawPixelRect(AREAS.server.x - 10, AREAS.server.y - 10, AREAS.server.width + 20, AREAS.server.height + 20, '#1a1a2e');
-      drawPixelRect(AREAS.server.x, AREAS.server.y, AREAS.server.width, AREAS.server.height, '#263238');
-      // Server racks
-      for(let i = 0; i < 3; i++) {
-        drawPixelRect(AREAS.server.x + 20 + i * 45, AREAS.server.y + 20, 35, 100, '#37474f');
-        // Blinking lights
-        const blink = Math.floor(Date.now() / 200 + i * 3) % 5;
-        ctx.fillStyle = blink === 0 ? '#f44336' : (blink === 1 ? '#4caf50' : '#2196f3');
-        for(let j = 0; j < 8; j++) {
-          if((i + j) % 3 === blink % 3) {
-            ctx.fillRect(AREAS.server.x + 25 + i * 45, AREAS.server.y + 30 + j * 10, 6, 4);
-          }
-        }
-      }
-      
-      // Meeting Spot
-      drawPixelRect(AREAS.meeting.x - 10, AREAS.meeting.y - 10, AREAS.meeting.width + 20, AREAS.meeting.height + 20, '#1a1a2e');
-      drawPixelRect(AREAS.meeting.x, AREAS.meeting.y, AREAS.meeting.width, AREAS.meeting.height, '#2e3b2e');
-      // Table
-      drawPixelRect(AREAS.meeting.x + 40, AREAS.meeting.y + 30, 80, 40, '#4a3c31');
-      // Chairs
-      drawPixelRect(AREAS.meeting.x + 20, AREAS.meeting.y + 40, 15, 20, '#5d4037');
-      drawPixelRect(AREAS.meeting.x + 125, AREAS.meeting.y + 40, 15, 20, '#5d4037');
-      
-      // Wall decorations
-      // Plant 1
-      drawPixelRect(50, 100, 20, 30, '#2e7d32');
-      drawPixelRect(55, 90, 10, 15, '#4caf50');
-      // Plant 2
-      drawPixelRect(570, 100, 20, 30, '#2e7d32');
-      drawPixelRect(575, 90, 10, 15, '#4caf50');
-      
-      // Clock
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      drawPixelRect(300, 20, 40, 40, '#424242');
-      drawPixelRect(305, 25, 30, 30, '#1a1a2e');
-      // Simple clock hands
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(320, 40);
-      ctx.lineTo(320 + Math.sin((hours % 12 + minutes/60) * Math.PI / 6) * 10, 40 - Math.cos((hours % 12 + minutes/60) * Math.PI / 6) * 10);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(320, 40);
-      ctx.lineTo(320 + Math.sin(minutes * Math.PI / 30) * 12, 40 - Math.cos(minutes * Math.PI / 30) * 12);
-      ctx.stroke();
-      
-      // Cat sleeping
-      const catX = 380, catY = 310;
-      drawPixelRect(catX, catY, 25, 15, '#ff9800');
-      drawPixelRect(catX + 5, catY - 5, 8, 8, '#ff9800'); // head
-      // Tail
-      drawPixelRect(catX + 25, catY + 5, 10, 5, '#ff9800');
-      // Zzz animation
-      if(Math.floor(Date.now() / 1000) % 3 === 0) {
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px monospace';
-        ctx.fillText('z', catX + 20, catY - 10);
-        ctx.fillText('z', catX + 25, catY - 18);
-        ctx.fillText('z', catX + 30, catY - 26);
-      }
-      
-      // Title plaque
-      drawPixelRect(220, 330, 200, 25, '#5d4037');
-      ctx.fillStyle = '#ffd700';
-      ctx.font = '10px "Press Start 2P", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('ATTICUS x AXEL x ASTRA', 320, 347);
-      ctx.textAlign = 'left';
-    }
-    
-    // Draw agent
-    function drawAgent(key, agent) {
-      // Bobbing animation
-      const bob = Math.sin(Date.now() / 300 + key.length) * 2;
-      const x = agent.x;
-      const y = agent.y + bob;
-      
-      // Movement interpolation
-      const dx = agent.targetX - agent.x;
-      const dy = agent.targetY - agent.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      if(dist > 2) {
-        agent.x += dx * 0.05;
-        agent.y += dy * 0.05;
-        agent.walkFrame = (agent.walkFrame + 0.2) % 2;
-      } else {
-        agent.walkFrame = 0;
-      }
-      
-      // Draw agent body (colored circle/oval)
-      ctx.fillStyle = agent.color;
-      ctx.beginPath();
-      ctx.arc(x, y, 12, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Belly/chest (lighter)
-      ctx.fillStyle = '#ffffff';
-      ctx.globalAlpha = 0.3;
-      ctx.beginPath();
-      ctx.arc(x, y + 3, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      
-      // Status indicator
-      const statusColors = {
-        working: '#4caf50',
-        idle: '#ffc107',
-        exploring: '#2196f3',
-        error: '#f44336',
-        sleeping: '#9c27b0'
-      };
-      ctx.fillStyle = statusColors[agent.status] || '#888';
-      ctx.beginPath();
-      ctx.arc(x + 8, y - 8, 4, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Walking legs animation
-      if(dist > 2) {
-        ctx.fillStyle = agent.color;
-        const legOffset = Math.sin(agent.walkFrame * Math.PI) * 4;
-        drawPixelRect(x - 6 + legOffset, y + 10, 4, 6, agent.color);
-        drawPixelRect(x + 2 - legOffset, y + 10, 4, 6, agent.color);
-      } else {
-        // Standing legs
-        drawPixelRect(x - 5, y + 10, 4, 6, agent.color);
-        drawPixelRect(x + 1, y + 10, 4, 6, agent.color);
-      }
-      
-      // Name label
-      ctx.fillStyle = '#fff';
-      ctx.font = '8px "Press Start 2P", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(agent.name, x, y - 20);
-      ctx.textAlign = 'left';
-    }
-    
-    // Draw speech bubble
-    function drawBubble(key, agent) {
-      if(!agent.bubble) return;
-      
-      const age = Date.now() - agent.bubbleTime;
-      if(age > 3000) {
-        agent.bubble = null;
-        return;
-      }
-      
-      const x = agent.x;
-      const y = agent.y - 40;
-      const text = agent.bubble;
-      const width = text.length * 6 + 16;
-      const height = 20;
-      
-      // Fade in/out
-      let alpha = 1;
-      if(age < 300) alpha = age / 300;
-      else if(age > 2500) alpha = 1 - (age - 2500) / 500;
-      
-      ctx.globalAlpha = alpha;
-      
-      // Bubble background
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.roundRect(x - width/2, y - height/2, width, height, 4);
-      ctx.fill();
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      
-      // Pointer
-      ctx.beginPath();
-      ctx.moveTo(x - 5, y + height/2);
-      ctx.lineTo(x, y + height/2 + 6);
-      ctx.lineTo(x + 5, y + height/2);
-      ctx.fill();
-      ctx.stroke();
-      
-      // Text
-      ctx.fillStyle = '#000';
-      ctx.font = '8px "Press Start 2P", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(text, x, y + 3);
-      ctx.textAlign = 'left';
-      
-      ctx.globalAlpha = 1;
-    }
-    
-    // Show random bubble
-    function maybeShowBubble(key, agent) {
-      if(agent.bubble) return;
-      if(Math.random() > 0.005) return;
-      
-      const thoughts = THOUGHTS[key];
-      agent.bubble = thoughts[Math.floor(Math.random() * thoughts.length)];
-      agent.bubbleTime = Date.now();
-    }
-    
-    // Apply time of day lighting
-    function applyTimeOfDay() {
-      const hour = new Date().getHours();
-      let overlay = 'rgba(0,0,0,0)';
-      
-      if(hour >= 6 && hour < 12) {
-        // Morning - warm gold
-        overlay = 'rgba(255, 200, 100, 0.15)';
-      } else if(hour >= 12 && hour < 18) {
-        // Afternoon - neutral
-        overlay = 'rgba(255, 255, 255, 0.05)';
-      } else if(hour >= 18 && hour < 22) {
-        // Evening - warm orange
-        overlay = 'rgba(255, 150, 80, 0.2)';
-      } else {
-        // Night - dark blue
-        overlay = 'rgba(50, 50, 100, 0.4)';
-      }
-      
-      drawPixelRect(0, 0, 640, 360, overlay);
-    }
-    
-    // Update agent cards
-    function updateCards() {
-      for(const [key, agent] of Object.entries(agents)) {
-        const card = document.getElementById(`card-${key}`);
-        if(!card) continue;
-        
-        const statusEl = card.querySelector('.status');
-        const taskEl = card.querySelector('.task');
-        
-        if(statusEl) statusEl.textContent = agent.status;
-        if(taskEl) taskEl.textContent = agent.task || 'No active task';
-      }
-    }
-    
-    // Fetch status
-    async function fetchStatus() {
-      try {
-        const res = await fetch('status.json?t=' + Date.now());
-        const data = await res.json();
-        
-        if(data.agents) {
-          for(const [key, info] of Object.entries(data.agents)) {
-            if(agents[key]) {
-              agents[key].status = info.status;
-              agents[key].task = info.task || '';
-              
-              // Set new target position
-              const pos = getPositionForStatus(info.status, key);
-              agents[key].targetX = pos.x;
-              agents[key].targetY = pos.y;
-            }
-          }
-        }
-        
-        updateCards();
-      } catch(e) {
-        console.log('Using demo status');
-        // Demo mode - cycle through statuses
-      }
-    }
-    
-    // Load yesterday's memo
-    async function loadMemo() {
-      try {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const dateStr = yesterday.toISOString().split('T')[0];
-        
-        // Try to load from memory file
-        const res = await fetch(`memory/${dateStr}.md?t=${Date.now()}`);
-        if(res.ok) {
-          const text = await res.text();
-          document.getElementById('memo-content').textContent = text.slice(0, 300) + (text.length > 300 ? '...' : '');
-          document.getElementById('memo-date').textContent = dateStr;
-        } else {
-          throw new Error('No memo found');
-        }
-      } catch(e) {
-        // Sample content
-        document.getElementById('memo-content').textContent = 
-          "Today was a productive day. The new features are coming along well. " +
-          "Need to remember to fix that bug tomorrow. Also, don't forget to update the docs.";
-        document.getElementById('memo-date').textContent = new Date().toISOString().split('T')[0];
-      }
-    }
-    
-    // Update time display
-    function updateTime() {
-      const now = new Date();
-      document.getElementById('time-display').textContent = 
-        now.getHours().toString().padStart(2, '0') + ':' + 
-        now.getMinutes().toString().padStart(2, '0');
-    }
-    
-    // Demo mode - cycle statuses
-    let demoIndex = 0;
-    const demoStatuses = ['working', 'idle', 'exploring', 'error'];
-    
-    function cycleDemo() {
-      const keys = Object.keys(agents);
-      keys.forEach((key, i) => {
-        const status = demoStatuses[(demoIndex + i) % demoStatuses.length];
-        agents[key].status = status;
-        const pos = getPositionForStatus(status, key);
-        agents[key].targetX = pos.x;
-        agents[key].targetY = pos.y;
-      });
-      demoIndex++;
-      updateCards();
-    }
-    
-    // Animation loop
-    function animate() {
-      // Draw scene
-      drawOffice();
-      
-      // Draw agents
-      for(const [key, agent] of Object.entries(agents)) {
-        drawAgent(key, agent);
-        maybeShowBubble(key, agent);
-        drawBubble(key, agent);
-      }
-      
-      // Apply time of day
-      applyTimeOfDay();
-      
-      updateTime();
-      
-      requestAnimationFrame(animate);
-    }
-    
-    // Initialize
-    fetchStatus();
-    loadMemo();
-    
-    // Poll status every 30s
-    setInterval(fetchStatus, 30000);
-    
-    // Demo cycle every 15s (if no real data)
-    setInterval(cycleDemo, 15000);
-    
-    // Start animation
-    animate();
-  </script>
+    updateCards();
+  } catch (e) {
+    // Demo mode — rotate every 12s
+  }
+}
+
+// ─── DEMO CYCLE ───
+let demoTick = 0;
+const DEMO_STATES = ['working', 'idle', 'exploring', 'error', 'sleeping'];
+function demoCycle() {
+  const keys = Object.keys(AGENTS);
+  keys.forEach((k, i) => {
+    AGENTS[k].status = DEMO_STATES[(demoTick + i) % DEMO_STATES.length];
+    const t = targetForAgent(k);
+    AGENTS[k].tx = t.x;
+    AGENTS[k].ty = t.y;
+  });
+  demoTick++;
+  updateCards();
+}
+
+// ─── MAIN LOOP ───
+function frame() {
+  drawScene();
+
+  // Sort agents by y for depth
+  const sorted = Object.keys(AGENTS).sort((a, b) => AGENTS[a].y - AGENTS[b].y);
+  for (const k of sorted) {
+    maybeBubble(k);
+    drawAgent(k);
+    drawBubble(k);
+  }
+
+  timeOverlay();
+  requestAnimationFrame(frame);
+}
+
+// Init
+fetchStatus();
+setInterval(fetchStatus, 30000);
+setInterval(demoCycle, 12000);
+frame();
+</script>
 </body>
 </html>
