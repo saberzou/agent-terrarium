@@ -3,549 +3,669 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Terrarium</title>
+  <title>Agent Terrarium 🏢</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #1a1a2e;
-      font-family: 'SF Mono', Monaco, monospace;
-      overflow: hidden;
+      background: #0d0d15;
+      font-family: 'Inter', sans-serif;
+      color: #e8e8e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+      margin-bottom: 15px;
+    }
+    #header h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px;
+      color: #ffd700;
+      text-shadow: 2px 2px 0 #b8860b;
+    }
+    #time-display {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #888;
     }
     #canvas-container {
-      width: 100vw;
-      height: 100vh;
+      position: relative;
+      border: 4px solid #2a2a3e;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
     }
-    #ui {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 30px;
-      background: rgba(0,0,0,0.7);
-      padding: 15px 25px;
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
-    .agent-badge {
+    #status-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 20px;
+    }
+    .agent-card {
+      background: #1a1a2e;
+      border: 2px solid #2a2a3e;
+      border-radius: 8px;
+      padding: 15px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      color: white;
+      gap: 12px;
+      transition: border-color 0.3s;
+    }
+    .agent-card.atticus { border-color: #8B6914; }
+    .agent-card.axel { border-color: #FF8C00; }
+    .agent-card.astra { border-color: #B7410E; }
+    .agent-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .atticus .agent-avatar { background: #8B691420; }
+    .axel .agent-avatar { background: #FF8C0020; }
+    .astra .agent-avatar { background: #B7410E20; }
+    .agent-info h3 {
       font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
     }
-    .agent-emoji { font-size: 20px; }
-    .agent-name { font-weight: bold; }
-    .agent-status {
-      padding: 2px 8px;
-      border-radius: 10px;
+    .agent-info .status {
+      font-size: 12px;
+      color: #888;
+      text-transform: capitalize;
+    }
+    .agent-info .task {
       font-size: 11px;
-      text-transform: uppercase;
-      background: rgba(255,255,255,0.2);
+      color: #666;
+      margin-top: 4px;
     }
-    .agent-status.working { background: #4CAF50; }
-    .agent-status.idle { background: #2196F3; }
-    .agent-status.exploring { background: #FF9800; }
-    .agent-status.sleeping { background: #9C27B0; }
-    #title {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      color: rgba(255,255,255,0.8);
-      font-size: 18px;
-      font-weight: bold;
+    #memo-section {
+      width: 100%;
+      max-width: 900px;
+      margin-top: 20px;
+      background: #2d2a1e;
+      border: 3px solid #5d4a2e;
+      border-radius: 8px;
+      padding: 20px;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23f4e4c1" opacity="0.1"/><circle cx="50" cy="50" r="30" fill="none" stroke="%23c4a574" opacity="0.3"/></svg>');
+    }
+    #memo-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #c4a574;
+      text-align: center;
+      margin-bottom: 10px;
       letter-spacing: 2px;
+    }
+    #memo-date {
+      font-size: 11px;
+      color: #888;
+      text-align: right;
+      margin-bottom: 8px;
+    }
+    #memo-content {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #3b3b32;
+      background: #f4e4c1;
+      padding: 15px;
+      border-radius: 4px;
+      min-height: 80px;
+    }
+    .loading {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+    @media (max-width: 768px) {
+      #status-panel {
+        grid-template-columns: 1fr;
+      }
+      #header h1 {
+        font-size: 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="title">AGENT TERRARIUM</div>
-  <div id="canvas-container"></div>
-  <div id="ui">
-    <div class="agent-badge">
-      <span class="agent-emoji">🐻</span>
-      <span class="agent-name">Atticus</span>
-      <span class="agent-status" id="status-atticus">idle</span>
+  <div id="header">
+    <h1>AGENT TERRARIUM 🏢</h1>
+    <div id="time-display">--:--</div>
+  </div>
+  
+  <div id="canvas-container">
+    <canvas id="office" width="640" height="360"></canvas>
+  </div>
+  
+  <div id="status-panel">
+    <div class="agent-card atticus" id="card-atticus">
+      <div class="agent-avatar">🐻</div>
+      <div class="agent-info">
+        <h3>Atticus</h3>
+        <div class="status">Loading...</div>
+        <div class="task"></div>
+      </div>
     </div>
-    <div class="agent-badge">
-      <span class="agent-emoji">🐯</span>
-      <span class="agent-name">Axel</span>
-      <span class="agent-status" id="status-axel">working</span>
+    <div class="agent-card axel" id="card-axel">
+      <div class="agent-avatar">🐯</div>
+      <div class="agent-info">
+        <h3>Axel</h3>
+        <div class="status">Loading...</div>
+        <div class="task"></div>
+      </div>
     </div>
-    <div class="agent-badge">
-      <span class="agent-emoji">🦝</span>
-      <span class="agent-name">Astra</span>
-      <span class="agent-status" id="status-astra">exploring</span>
+    <div class="agent-card astra" id="card-astra">
+      <div class="agent-avatar">🦝</div>
+      <div class="agent-info">
+        <h3>Astra</h3>
+        <div class="status">Loading...</div>
+        <div class="task"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="memo-section">
+    <div id="memo-title">— YESTERDAY'S NOTES —</div>
+    <div id="memo-date">--</div>
+    <div id="memo-content">
+      <div class="loading">Loading yesterday's notes...</div>
     </div>
   </div>
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-    }
-  }
-  </script>
-
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    // Scene setup
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x2a2a3e);
-    scene.fog = new THREE.Fog(0x2a2a3e, 30, 80);
-
-    // Isometric camera
-    const aspect = window.innerWidth / window.innerHeight;
-    const d = 12;
-    const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
-    camera.position.set(20, 20, 20);
-    camera.lookAt(0, 0, 0);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.minPolarAngle = 0;
-    controls.maxPolarAngle = Math.PI / 2.2;
-    controls.minZoom = 0.5;
-    controls.maxZoom = 2;
-
-    // Lighting based on time — always bright enough to see, with mood tint
-    const now = new Date();
-    const hour = now.getHours();
-    let lightIntensity, lightColor, ambientIntensity, ambientColor;
-
-    if (hour >= 6 && hour < 12) { // Morning
-      lightColor = 0xfff0d0;
-      lightIntensity = 1.5;
-      ambientColor = 0xffe4b5;
-      ambientIntensity = 1.0;
-    } else if (hour >= 12 && hour < 18) { // Afternoon
-      lightColor = 0xffffff;
-      lightIntensity = 1.6;
-      ambientColor = 0xffffff;
-      ambientIntensity = 1.0;
-    } else if (hour >= 18 && hour < 22) { // Evening
-      lightColor = 0xffd59e;
-      lightIntensity = 1.4;
-      ambientColor = 0xffe0b2;
-      ambientIntensity = 0.9;
-    } else { // Night
-      lightColor = 0xb0c4de;
-      lightIntensity = 1.0;
-      ambientColor = 0x8899bb;
-      ambientIntensity = 0.7;
-    }
-
-    const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
-    scene.add(ambientLight);
-
-    // Hemisphere light for natural fill
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-    scene.add(hemiLight);
-
-    const dirLight = new THREE.DirectionalLight(lightColor, lightIntensity);
-    dirLight.position.set(10, 20, 10);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    scene.add(dirLight);
-
-    // Secondary fill light from opposite side
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
-    fillLight.position.set(-10, 15, -5);
-    scene.add(fillLight);
-
-    // Helper: create voxel box
-    function createBox(w, h, d, color, x, y, z) {
-      const geometry = new THREE.BoxGeometry(w, h, d);
-      const material = new THREE.MeshStandardMaterial({ 
-        color: color,
-        roughness: 0.8,
-        metalness: 0.1
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(x, y, z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      return mesh;
-    }
-
-    // Agent states
-    const agentStates = {
-      atticus: 'idle',
-      axel: 'working',
-      astra: 'exploring'
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('office');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    
+    // Scale for high DPI
+    const scale = 2;
+    canvas.style.width = '640px';
+    canvas.style.height = '360px';
+    
+    // Office areas
+    const AREAS = {
+      desk: { x: 80, y: 180, width: 160, height: 140, name: 'Desk Area' },
+      break: { x: 260, y: 180, width: 120, height: 140, name: 'Break Room' },
+      server: { x: 400, y: 180, width: 160, height: 140, name: 'Server Room' },
+      meeting: { x: 240, y: 60, width: 160, height: 100, name: 'Meeting Spot' }
     };
-
-    // Create rooms
-    const rooms = new THREE.Group();
-    scene.add(rooms);
-
-    // Room 1: Atticus's Study (left, warm wood)
-    const room1 = new THREE.Group();
-    room1.position.set(-8, 0, 0);
-    rooms.add(room1);
-
-    // Floor
-    room1.add(createBox(6, 0.2, 6, 0x8B6914, 0, 0.1, 0));
-    // Back wall
-    room1.add(createBox(6, 4, 0.2, 0xA0522D, 0, 2, -3));
-    // Side wall
-    room1.add(createBox(0.2, 4, 6, 0xA0522D, -3, 2, 0));
-    // Bookshelf
-    room1.add(createBox(2, 3, 0.5, 0x654321, -2.5, 1.5, -2.5));
-    // Books (colored boxes)
-    for (let i = 0; i < 8; i++) {
-      const bookColor = [0x8B0000, 0x006400, 0x00008B, 0x4B0082, 0x8B4513][Math.floor(Math.random() * 5)];
-      room1.add(createBox(0.15, 0.6, 0.4, bookColor, -3 + i * 0.25, 2, -2.5));
-    }
-    // Desk
-    room1.add(createBox(2, 0.1, 1, 0x8B4513, -1, 1, -1));
-    room1.add(createBox(0.1, 1, 0.1, 0x654321, -1.8, 0.5, -1.4));
-    room1.add(createBox(0.1, 1, 0.1, 0x654321, -0.2, 0.5, -1.4));
-    // Monitor (glowing)
-    const monitor1 = createBox(0.8, 0.5, 0.05, 0x87CEEB, -1, 1.6, -0.8);
-    monitor1.material.emissive = new THREE.Color(0x87CEEB);
-    monitor1.material.emissiveIntensity = 0.5;
-    room1.add(monitor1);
-    // Armchair
-    room1.add(createBox(1, 0.5, 1, 0x8B4513, 1.5, 0.5, 0));
-    room1.add(createBox(1, 1, 0.2, 0x654321, 1.5, 1, 0.4));
-    // Mug
-    room1.add(createBox(0.15, 0.2, 0.15, 0xFFFFFF, -0.3, 1.15, -0.8));
-    // Lamp
-    const lampLight1 = new THREE.PointLight(0xFFD700, 0.5, 5);
-    lampLight1.position.set(1.5, 2, 1.5);
-    room1.add(lampLight1);
-    room1.add(createBox(0.2, 1.5, 0.2, 0x2F4F4F, 1.5, 0.75, 1.5));
-    room1.add(createBox(0.4, 0.2, 0.4, 0xFFD700, 1.5, 1.6, 1.5));
-
-    // Room 2: Axel's Studio (center, colorful chaos)
-    const room2 = new THREE.Group();
-    room2.position.set(0, 0, 0);
-    rooms.add(room2);
-
-    // Floor with paint splatters (simplified as colored patches)
-    room2.add(createBox(6, 0.2, 6, 0xE8E8E8, 0, 0.1, 0));
-    room2.add(createBox(1, 0.22, 0.8, 0xFF6B35, -1.5, 0.11, 1));
-    room2.add(createBox(0.6, 0.22, 0.6, 0xF7C948, 1.5, 0.11, -1));
-    room2.add(createBox(0.8, 0.22, 0.5, 0x4ECDC4, 0.5, 0.11, 2));
-    // Back wall with canvases
-    room2.add(createBox(6, 4, 0.2, 0xFFFFFF, 0, 2, -3));
-    // Canvases on wall
-    const canvas1 = createBox(1.5, 2, 0.1, 0xFF6B35, -1.5, 2.5, -2.9);
-    room2.add(canvas1);
-    const canvas2 = createBox(1.2, 1.5, 0.1, 0xF7C948, 1.5, 2.2, -2.9);
-    room2.add(canvas2);
-    // Easel
-    room2.add(createBox(0.1, 2.5, 0.1, 0x8B4513, -0.5, 1.25, -1));
-    room2.add(createBox(0.1, 2.5, 0.1, 0x8B4513, 0.5, 1.25, -1));
-    room2.add(createBox(1.2, 0.1, 0.05, 0x8B4513, 0, 2, -1));
-    // Canvas on easel
-    const easelCanvas = createBox(1, 1.2, 0.05, 0xFF6B35, 0, 1.8, -0.95);
-    room2.add(easelCanvas);
-    // Messy couch
-    room2.add(createBox(2, 0.6, 1, 0x4A5568, 2, 0.4, 1.5));
-    room2.add(createBox(2, 1, 0.2, 0x2D3748, 2, 0.8, 2));
-    // Paint supplies
-    room2.add(createBox(0.3, 0.4, 0.3, 0xC0C0C0, 1.8, 0.3, -0.5));
-    room2.add(createBox(0.05, 0.3, 0.05, 0xFF0000, 1.9, 0.55, -0.4));
-    room2.add(createBox(0.05, 0.3, 0.05, 0x00FF00, 1.85, 0.55, -0.5));
-    room2.add(createBox(0.05, 0.3, 0.05, 0x0000FF, 1.75, 0.55, -0.45));
-
-    // Room 3: Astra's Zen Gym (right, natural)
-    const room3 = new THREE.Group();
-    room3.position.set(8, 0, 0);
-    rooms.add(room3);
-
-    // Floor (tatami-like)
-    room3.add(createBox(6, 0.2, 6, 0xE8D5B7, 0, 0.1, 0));
-    // Back wall
-    room3.add(createBox(6, 4, 0.2, 0xA5D6A7, 0, 2, -3));
-    // Bamboo plants
-    for (let i = 0; i < 3; i++) {
-      const x = -2 + i * 2;
-      room3.add(createBox(0.1, 2, 0.1, 0x7CB342, x, 1, -2.8));
-      room3.add(createBox(0.15, 0.3, 0.15, 0x8B4513, x, 0.15, -2.8));
-      // Leaves
-      room3.add(createBox(0.3, 0.1, 0.1, 0x7CB342, x + 0.2, 1.8, -2.8));
-      room3.add(createBox(0.3, 0.1, 0.1, 0x7CB342, x - 0.2, 1.5, -2.8));
-    }
-    // Yoga mat
-    room3.add(createBox(1.5, 0.05, 3, 0x81C784, 0, 0.13, 0.5));
-    // Meditation cushion
-    room3.add(createBox(0.6, 0.3, 0.6, 0x9C27B0, -1.5, 0.25, 1));
-    // Dumbbells
-    room3.add(createBox(0.4, 0.15, 0.15, 0x37474F, 2, 0.18, -1.5));
-    room3.add(createBox(0.15, 0.25, 0.15, 0x78909C, 2.15, 0.18, -1.5));
-    room3.add(createBox(0.15, 0.25, 0.15, 0x78909C, 1.85, 0.18, -1.5));
-    // Shelf with smoothie
-    room3.add(createBox(1, 0.1, 0.3, 0x8D6E63, 2.5, 1.5, -2.5));
-    room3.add(createBox(0.15, 0.25, 0.15, 0xFF6B9D, 2.5, 1.7, -2.5));
-    // Natural light
-    const sunLight = new THREE.DirectionalLight(0xFFF8E1, 0.3);
-    sunLight.position.set(8, 10, 5);
-    room3.add(sunLight);
-
-    // Create voxel characters
-    function createVoxelCharacter(type, x, z) {
-      const group = new THREE.Group();
-      group.position.set(x, 0, z);
-
-      let bodyColor, accentColor, detailColor;
-      
-      if (type === 'atticus') { // Bear
-        bodyColor = 0x8B6914;
-        accentColor = 0xD2B48C;
-        detailColor = 0x2F4F4F;
-      } else if (type === 'axel') { // Tiger
-        bodyColor = 0xFF8C00;
-        accentColor = 0x000000;
-        detailColor = 0xFFFFFF;
-      } else { // Astra - Red Panda
-        bodyColor = 0xB7410E;
-        accentColor = 0x2F1B14;
-        detailColor = 0xFFFFFF;
-      }
-
-      // Body
-      const body = createBox(0.6, 0.7, 0.4, bodyColor, 0, 0.6, 0);
-      group.add(body);
-
-      // Belly/chest (lighter)
-      const belly = createBox(0.4, 0.5, 0.05, accentColor, 0, 0.55, 0.18);
-      group.add(belly);
-
-      // Head
-      const head = createBox(0.5, 0.45, 0.45, bodyColor, 0, 1.2, 0);
-      group.add(head);
-
-      // Ears
-      if (type === 'atticus') { // Round bear ears
-        group.add(createBox(0.15, 0.15, 0.1, bodyColor, -0.15, 1.45, 0));
-        group.add(createBox(0.15, 0.15, 0.1, bodyColor, 0.15, 1.45, 0));
-      } else if (type === 'axel') { // Pointed tiger ears
-        group.add(createBox(0.12, 0.2, 0.1, bodyColor, -0.15, 1.48, 0));
-        group.add(createBox(0.12, 0.2, 0.1, bodyColor, 0.15, 1.48, 0));
-        // Stripes on head
-        group.add(createBox(0.52, 0.05, 0.46, accentColor, 0, 1.25, 0));
-        group.add(createBox(0.52, 0.05, 0.46, accentColor, 0, 1.35, 0));
-      } else { // Red panda ears (triangular-ish)
-        group.add(createBox(0.12, 0.18, 0.1, 0x8B4513, -0.15, 1.45, 0));
-        group.add(createBox(0.12, 0.18, 0.1, 0x8B4513, 0.15, 1.45, 0));
-        // White face markings
-        group.add(createBox(0.35, 0.25, 0.05, detailColor, 0, 1.15, 0.21));
-      }
-
-      // Eyes
-      group.add(createBox(0.08, 0.08, 0.02, 0x000000, -0.1, 1.25, 0.23));
-      group.add(createBox(0.08, 0.08, 0.02, 0x000000, 0.1, 1.25, 0.23));
-
-      // Glasses for Atticus
-      if (type === 'atticus') {
-        group.add(createBox(0.12, 0.02, 0.03, 0x2F4F4F, -0.1, 1.25, 0.24));
-        group.add(createBox(0.12, 0.02, 0.03, 0x2F4F4F, 0.1, 1.25, 0.24));
-        group.add(createBox(0.06, 0.02, 0.02, 0x2F4F4F, 0, 1.25, 0.24));
-      }
-
-      // Arms
-      const leftArm = createBox(0.15, 0.5, 0.15, bodyColor, -0.4, 0.7, 0);
-      const rightArm = createBox(0.15, 0.5, 0.15, bodyColor, 0.4, 0.7, 0);
-      group.add(leftArm);
-      group.add(rightArm);
-
-      // Legs
-      group.add(createBox(0.2, 0.4, 0.2, bodyColor, -0.15, 0.2, 0));
-      group.add(createBox(0.2, 0.4, 0.2, bodyColor, 0.15, 0.2, 0));
-
-      // Tail (special features)
-      if (type === 'axel') { // Tiger tail
-        const tail = createBox(0.12, 0.12, 0.6, bodyColor, 0, 0.4, 0.5);
-        group.add(tail);
-        // Stripes
-        group.add(createBox(0.13, 0.13, 0.1, accentColor, 0, 0.4, 0.5));
-        group.add(createBox(0.13, 0.13, 0.1, accentColor, 0, 0.4, 0.7));
-      } else if (type === 'astra') { // Red panda tail (bushy, ringed)
-        const tailGroup = new THREE.Group();
-        tailGroup.position.set(0, 0.4, 0.3);
-        // Multiple segments for bushy look
-        tailGroup.add(createBox(0.2, 0.2, 0.3, bodyColor, 0, 0, 0.15));
-        tailGroup.add(createBox(0.22, 0.22, 0.25, 0x8B4513, 0, 0, 0.4));
-        tailGroup.add(createBox(0.18, 0.18, 0.25, bodyColor, 0, 0, 0.6));
-        tailGroup.add(createBox(0.2, 0.2, 0.2, 0x8B4513, 0, 0, 0.8));
-        group.add(tailGroup);
-      }
-
-      return { group, leftArm, rightArm, body, head, type };
-    }
-
-    // Create agents
+    
+    // Agent data
     const agents = {
-      atticus: createVoxelCharacter('atticus', -1, 0),
-      axel: createVoxelCharacter('axel', 0, 0),
-      astra: createVoxelCharacter('astra', 1, 0)
+      atticus: { name: 'Atticus', emoji: '🐻', color: '#8B6914', x: 140, y: 240, targetX: 140, targetY: 240, status: 'idle', walkFrame: 0, bubble: null, bubbleTime: 0 },
+      axel: { name: 'Axel', emoji: '🐯', color: '#FF8C00', x: 320, y: 240, targetX: 320, targetY: 240, status: 'working', walkFrame: 0, bubble: null, bubbleTime: 0 },
+      astra: { name: 'Astra', emoji: '🦝', color: '#B7410E', x: 480, y: 240, targetX: 480, targetY: 240, status: 'exploring', walkFrame: 0, bubble: null, bubbleTime: 0 }
     };
-
-    room1.add(agents.atticus.group);
-    room2.add(agents.axel.group);
-    room3.add(agents.astra.group);
-
-    // Position agents based on their activities
-    // Atticus: at desk or in chair
-    agents.atticus.group.position.set(-1, 0.25, -1);
-    agents.atticus.group.rotation.y = Math.PI;
-
-    // Axel: at easel
-    agents.axel.group.position.set(0.3, 0.25, -0.5);
-    agents.axel.group.rotation.y = -Math.PI / 2;
-
-    // Astra: on yoga mat
-    agents.astra.group.position.set(0, 0.25, 0.5);
-
-    // Animation functions
-    let time = 0;
-    const zzzParticles = [];
-
-    function animateAgent(agent, state, dt) {
-      const t = time * 2;
+    
+    // Thought bubbles per agent
+    const THOUGHTS = {
+      atticus: [
+        "Optimizing the pipeline...",
+        "This needs more tests.",
+        "Coffee break? No, one more commit.",
+        "Interesting pattern here...",
+        "Let's refactor that.",
+        "Working on it!",
+        "Hmm, let me think...",
+        "Almost done..."
+      ],
+      axel: [
+        "Let's try something wild!",
+        "Colors need more contrast...",
+        "Ship it! 🚀",
+        "What if we flip the whole thing?",
+        "This is looking good!",
+        "Creative mode: ON",
+        "Let's paint the town!",
+        "Art is happening!"
+      ],
+      astra: [
+        "Remember to stretch!",
+        "Good progress today.",
+        "Deep breath, then debug.",
+        "Stay hydrated! 💧",
+        "You've got this!",
+        "Take breaks often.",
+        "Form is everything.",
+        "Balance is key."
+      ]
+    };
+    
+    // Get position for status
+    function getPositionForStatus(status, agentKey) {
+      const offsets = { atticus: 0, axel: 40, astra: -40 };
+      const offset = offsets[agentKey] || 0;
       
-      if (state === 'working') {
-        // Typing/painting motion - arms bob
-        agent.leftArm.rotation.x = Math.sin(t * 3) * 0.3 - 0.5;
-        agent.rightArm.rotation.x = Math.cos(t * 3) * 0.3 - 0.5;
-        agent.body.position.y = 0.6 + Math.sin(t) * 0.01;
-      } else if (state === 'idle') {
-        // Slow breathing
-        agent.body.scale.y = 1 + Math.sin(t * 0.5) * 0.02;
-        agent.leftArm.rotation.x = Math.sin(t * 0.5) * 0.1;
-        agent.rightArm.rotation.x = -Math.sin(t * 0.5) * 0.1;
-      } else if (state === 'exploring') {
-        // Looking around
-        agent.head.rotation.y = Math.sin(t * 0.3) * 0.3;
-        agent.leftArm.rotation.z = Math.sin(t) * 0.1 + 0.2;
-        agent.rightArm.rotation.z = -Math.sin(t) * 0.1 - 0.2;
-      } else if (state === 'sleeping') {
-        // Slumped, gentle breathing
-        agent.body.rotation.x = 0.2;
-        agent.body.scale.y = 1 + Math.sin(t * 0.3) * 0.03;
-        agent.head.rotation.x = 0.3;
-        // Zzz particles
-        if (Math.random() < 0.02) {
-          createZzzParticle(agent.group.position.clone().add(agent.group.parent.position).add(new THREE.Vector3(0, 2, 0)));
+      switch(status) {
+        case 'working': return { x: AREAS.desk.x + 40 + offset, y: AREAS.desk.y + 60 };
+        case 'idle': return { x: AREAS.break.x + 30 + (offset/2), y: AREAS.break.y + 50 };
+        case 'exploring': return { x: AREAS.meeting.x + 50 + offset, y: AREAS.meeting.y + 40 };
+        case 'error': return { x: AREAS.server.x + 40 + offset, y: AREAS.server.y + 60 };
+        case 'sleeping': return { x: AREAS.break.x + 30 + (offset/2), y: AREAS.break.y + 50 };
+        default: return { x: AREAS.break.x + 30, y: AREAS.break.y + 50 };
+      }
+    }
+    
+    // Draw pixel rectangle
+    function drawPixelRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.floor(x), Math.floor(y), w, h);
+    }
+    
+    // Draw office background
+    function drawOffice() {
+      // Background
+      drawPixelRect(0, 0, 640, 360, '#1a1a2e');
+      
+      // Floor
+      drawPixelRect(40, 140, 560, 200, '#2a2520');
+      // Floor pattern
+      ctx.fillStyle = '#3a3530';
+      for(let x = 50; x < 580; x += 40) {
+        ctx.fillRect(x, 150, 20, 180);
+      }
+      
+      // Desk Area
+      drawPixelRect(AREAS.desk.x - 10, AREAS.desk.y - 10, AREAS.desk.width + 20, AREAS.desk.height + 20, '#1a1a2e');
+      drawPixelRect(AREAS.desk.x, AREAS.desk.y, AREAS.desk.width, AREAS.desk.height, '#3e2723');
+      // Desks
+      drawPixelRect(AREAS.desk.x + 20, AREAS.desk.y + 20, 40, 30, '#5d4037');
+      drawPixelRect(AREAS.desk.x + 70, AREAS.desk.y + 20, 40, 30, '#5d4037');
+      drawPixelRect(AREAS.desk.x + 120, AREAS.desk.y + 20, 40, 30, '#5d4037');
+      // Monitors
+      drawPixelRect(AREAS.desk.x + 25, AREAS.desk.y + 15, 30, 20, '#1a1a2e');
+      drawPixelRect(AREAS.desk.x + 75, AREAS.desk.y + 15, 30, 20, '#1a1a2e');
+      drawPixelRect(AREAS.desk.x + 125, AREAS.desk.y + 15, 30, 20, '#1a1a2e');
+      // Monitor glow
+      ctx.fillStyle = '#4fc3f7';
+      ctx.globalAlpha = 0.3;
+      ctx.fillRect(AREAS.desk.x + 27, AREAS.desk.y + 17, 26, 16);
+      ctx.fillRect(AREAS.desk.x + 77, AREAS.desk.y + 17, 26, 16);
+      ctx.fillRect(AREAS.desk.x + 127, AREAS.desk.y + 17, 26, 16);
+      ctx.globalAlpha = 1;
+      
+      // Break Room
+      drawPixelRect(AREAS.break.x - 10, AREAS.break.y - 10, AREAS.break.width + 20, AREAS.break.height + 20, '#1a1a2e');
+      drawPixelRect(AREAS.break.x, AREAS.break.y, AREAS.break.width, AREAS.break.height, '#4a3c31');
+      // Couch
+      drawPixelRect(AREAS.break.x + 20, AREAS.break.y + 40, 80, 30, '#6d4c41');
+      drawPixelRect(AREAS.break.x + 20, AREAS.break.y + 30, 80, 15, '#5d4037');
+      // Coffee machine
+      drawPixelRect(AREAS.break.x + 20, AREAS.break.y + 90, 25, 30, '#424242');
+      // Steam particles
+      const steamTime = Date.now() / 500;
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.4;
+      ctx.fillRect(AREAS.break.x + 27 + Math.sin(steamTime) * 3, AREAS.break.y + 80 - (steamTime % 3) * 5, 8, 8);
+      ctx.globalAlpha = 1;
+      
+      // Server Room
+      drawPixelRect(AREAS.server.x - 10, AREAS.server.y - 10, AREAS.server.width + 20, AREAS.server.height + 20, '#1a1a2e');
+      drawPixelRect(AREAS.server.x, AREAS.server.y, AREAS.server.width, AREAS.server.height, '#263238');
+      // Server racks
+      for(let i = 0; i < 3; i++) {
+        drawPixelRect(AREAS.server.x + 20 + i * 45, AREAS.server.y + 20, 35, 100, '#37474f');
+        // Blinking lights
+        const blink = Math.floor(Date.now() / 200 + i * 3) % 5;
+        ctx.fillStyle = blink === 0 ? '#f44336' : (blink === 1 ? '#4caf50' : '#2196f3');
+        for(let j = 0; j < 8; j++) {
+          if((i + j) % 3 === blink % 3) {
+            ctx.fillRect(AREAS.server.x + 25 + i * 45, AREAS.server.y + 30 + j * 10, 6, 4);
+          }
         }
       }
+      
+      // Meeting Spot
+      drawPixelRect(AREAS.meeting.x - 10, AREAS.meeting.y - 10, AREAS.meeting.width + 20, AREAS.meeting.height + 20, '#1a1a2e');
+      drawPixelRect(AREAS.meeting.x, AREAS.meeting.y, AREAS.meeting.width, AREAS.meeting.height, '#2e3b2e');
+      // Table
+      drawPixelRect(AREAS.meeting.x + 40, AREAS.meeting.y + 30, 80, 40, '#4a3c31');
+      // Chairs
+      drawPixelRect(AREAS.meeting.x + 20, AREAS.meeting.y + 40, 15, 20, '#5d4037');
+      drawPixelRect(AREAS.meeting.x + 125, AREAS.meeting.y + 40, 15, 20, '#5d4037');
+      
+      // Wall decorations
+      // Plant 1
+      drawPixelRect(50, 100, 20, 30, '#2e7d32');
+      drawPixelRect(55, 90, 10, 15, '#4caf50');
+      // Plant 2
+      drawPixelRect(570, 100, 20, 30, '#2e7d32');
+      drawPixelRect(575, 90, 10, 15, '#4caf50');
+      
+      // Clock
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      drawPixelRect(300, 20, 40, 40, '#424242');
+      drawPixelRect(305, 25, 30, 30, '#1a1a2e');
+      // Simple clock hands
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(320, 40);
+      ctx.lineTo(320 + Math.sin((hours % 12 + minutes/60) * Math.PI / 6) * 10, 40 - Math.cos((hours % 12 + minutes/60) * Math.PI / 6) * 10);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(320, 40);
+      ctx.lineTo(320 + Math.sin(minutes * Math.PI / 30) * 12, 40 - Math.cos(minutes * Math.PI / 30) * 12);
+      ctx.stroke();
+      
+      // Cat sleeping
+      const catX = 380, catY = 310;
+      drawPixelRect(catX, catY, 25, 15, '#ff9800');
+      drawPixelRect(catX + 5, catY - 5, 8, 8, '#ff9800'); // head
+      // Tail
+      drawPixelRect(catX + 25, catY + 5, 10, 5, '#ff9800');
+      // Zzz animation
+      if(Math.floor(Date.now() / 1000) % 3 === 0) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px monospace';
+        ctx.fillText('z', catX + 20, catY - 10);
+        ctx.fillText('z', catX + 25, catY - 18);
+        ctx.fillText('z', catX + 30, catY - 26);
+      }
+      
+      // Title plaque
+      drawPixelRect(220, 330, 200, 25, '#5d4037');
+      ctx.fillStyle = '#ffd700';
+      ctx.font = '10px "Press Start 2P", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('ATTICUS x AXEL x ASTRA', 320, 347);
+      ctx.textAlign = 'left';
     }
-
-    function createZzzParticle(pos) {
-      const zzz = document.createElement('div');
-      zzz.textContent = 'z';
-      zzz.style.cssText = `
-        position: fixed;
-        left: ${window.innerWidth/2}px;
-        top: ${window.innerHeight/2}px;
-        color: white;
-        font-size: 20px;
-        pointer-events: none;
-        opacity: 1;
-        transition: all 2s ease-out;
-      `;
-      document.body.appendChild(zzz);
+    
+    // Draw agent
+    function drawAgent(key, agent) {
+      // Bobbing animation
+      const bob = Math.sin(Date.now() / 300 + key.length) * 2;
+      const x = agent.x;
+      const y = agent.y + bob;
       
-      // Project 3D position to screen
-      const vector = pos.clone();
-      vector.project(camera);
-      const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+      // Movement interpolation
+      const dx = agent.targetX - agent.x;
+      const dy = agent.targetY - agent.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
       
-      zzz.style.left = x + 'px';
-      zzz.style.top = y + 'px';
+      if(dist > 2) {
+        agent.x += dx * 0.05;
+        agent.y += dy * 0.05;
+        agent.walkFrame = (agent.walkFrame + 0.2) % 2;
+      } else {
+        agent.walkFrame = 0;
+      }
       
-      setTimeout(() => {
-        zzz.style.transform = 'translateY(-50px)';
-        zzz.style.opacity = '0';
-      }, 10);
+      // Draw agent body (colored circle/oval)
+      ctx.fillStyle = agent.color;
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.fill();
       
-      setTimeout(() => zzz.remove(), 2000);
+      // Belly/chest (lighter)
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.arc(x, y + 3, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      // Status indicator
+      const statusColors = {
+        working: '#4caf50',
+        idle: '#ffc107',
+        exploring: '#2196f3',
+        error: '#f44336',
+        sleeping: '#9c27b0'
+      };
+      ctx.fillStyle = statusColors[agent.status] || '#888';
+      ctx.beginPath();
+      ctx.arc(x + 8, y - 8, 4, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Walking legs animation
+      if(dist > 2) {
+        ctx.fillStyle = agent.color;
+        const legOffset = Math.sin(agent.walkFrame * Math.PI) * 4;
+        drawPixelRect(x - 6 + legOffset, y + 10, 4, 6, agent.color);
+        drawPixelRect(x + 2 - legOffset, y + 10, 4, 6, agent.color);
+      } else {
+        // Standing legs
+        drawPixelRect(x - 5, y + 10, 4, 6, agent.color);
+        drawPixelRect(x + 1, y + 10, 4, 6, agent.color);
+      }
+      
+      // Name label
+      ctx.fillStyle = '#fff';
+      ctx.font = '8px "Press Start 2P", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(agent.name, x, y - 20);
+      ctx.textAlign = 'left';
     }
-
+    
+    // Draw speech bubble
+    function drawBubble(key, agent) {
+      if(!agent.bubble) return;
+      
+      const age = Date.now() - agent.bubbleTime;
+      if(age > 3000) {
+        agent.bubble = null;
+        return;
+      }
+      
+      const x = agent.x;
+      const y = agent.y - 40;
+      const text = agent.bubble;
+      const width = text.length * 6 + 16;
+      const height = 20;
+      
+      // Fade in/out
+      let alpha = 1;
+      if(age < 300) alpha = age / 300;
+      else if(age > 2500) alpha = 1 - (age - 2500) / 500;
+      
+      ctx.globalAlpha = alpha;
+      
+      // Bubble background
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(x - width/2, y - height/2, width, height, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      // Pointer
+      ctx.beginPath();
+      ctx.moveTo(x - 5, y + height/2);
+      ctx.lineTo(x, y + height/2 + 6);
+      ctx.lineTo(x + 5, y + height/2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Text
+      ctx.fillStyle = '#000';
+      ctx.font = '8px "Press Start 2P", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, x, y + 3);
+      ctx.textAlign = 'left';
+      
+      ctx.globalAlpha = 1;
+    }
+    
+    // Show random bubble
+    function maybeShowBubble(key, agent) {
+      if(agent.bubble) return;
+      if(Math.random() > 0.005) return;
+      
+      const thoughts = THOUGHTS[key];
+      agent.bubble = thoughts[Math.floor(Math.random() * thoughts.length)];
+      agent.bubbleTime = Date.now();
+    }
+    
+    // Apply time of day lighting
+    function applyTimeOfDay() {
+      const hour = new Date().getHours();
+      let overlay = 'rgba(0,0,0,0)';
+      
+      if(hour >= 6 && hour < 12) {
+        // Morning - warm gold
+        overlay = 'rgba(255, 200, 100, 0.15)';
+      } else if(hour >= 12 && hour < 18) {
+        // Afternoon - neutral
+        overlay = 'rgba(255, 255, 255, 0.05)';
+      } else if(hour >= 18 && hour < 22) {
+        // Evening - warm orange
+        overlay = 'rgba(255, 150, 80, 0.2)';
+      } else {
+        // Night - dark blue
+        overlay = 'rgba(50, 50, 100, 0.4)';
+      }
+      
+      drawPixelRect(0, 0, 640, 360, overlay);
+    }
+    
+    // Update agent cards
+    function updateCards() {
+      for(const [key, agent] of Object.entries(agents)) {
+        const card = document.getElementById(`card-${key}`);
+        if(!card) continue;
+        
+        const statusEl = card.querySelector('.status');
+        const taskEl = card.querySelector('.task');
+        
+        if(statusEl) statusEl.textContent = agent.status;
+        if(taskEl) taskEl.textContent = agent.task || 'No active task';
+      }
+    }
+    
+    // Fetch status
+    async function fetchStatus() {
+      try {
+        const res = await fetch('status.json?t=' + Date.now());
+        const data = await res.json();
+        
+        if(data.agents) {
+          for(const [key, info] of Object.entries(data.agents)) {
+            if(agents[key]) {
+              agents[key].status = info.status;
+              agents[key].task = info.task || '';
+              
+              // Set new target position
+              const pos = getPositionForStatus(info.status, key);
+              agents[key].targetX = pos.x;
+              agents[key].targetY = pos.y;
+            }
+          }
+        }
+        
+        updateCards();
+      } catch(e) {
+        console.log('Using demo status');
+        // Demo mode - cycle through statuses
+      }
+    }
+    
+    // Load yesterday's memo
+    async function loadMemo() {
+      try {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dateStr = yesterday.toISOString().split('T')[0];
+        
+        // Try to load from memory file
+        const res = await fetch(`memory/${dateStr}.md?t=${Date.now()}`);
+        if(res.ok) {
+          const text = await res.text();
+          document.getElementById('memo-content').textContent = text.slice(0, 300) + (text.length > 300 ? '...' : '');
+          document.getElementById('memo-date').textContent = dateStr;
+        } else {
+          throw new Error('No memo found');
+        }
+      } catch(e) {
+        // Sample content
+        document.getElementById('memo-content').textContent = 
+          "Today was a productive day. The new features are coming along well. " +
+          "Need to remember to fix that bug tomorrow. Also, don't forget to update the docs.";
+        document.getElementById('memo-date').textContent = new Date().toISOString().split('T')[0];
+      }
+    }
+    
+    // Update time display
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('time-display').textContent = 
+        now.getHours().toString().padStart(2, '0') + ':' + 
+        now.getMinutes().toString().padStart(2, '0');
+    }
+    
+    // Demo mode - cycle statuses
+    let demoIndex = 0;
+    const demoStatuses = ['working', 'idle', 'exploring', 'error'];
+    
+    function cycleDemo() {
+      const keys = Object.keys(agents);
+      keys.forEach((key, i) => {
+        const status = demoStatuses[(demoIndex + i) % demoStatuses.length];
+        agents[key].status = status;
+        const pos = getPositionForStatus(status, key);
+        agents[key].targetX = pos.x;
+        agents[key].targetY = pos.y;
+      });
+      demoIndex++;
+      updateCards();
+    }
+    
     // Animation loop
     function animate() {
-      requestAnimationFrame(animate);
+      // Draw scene
+      drawOffice();
       
-      time += 0.016;
-      
-      animateAgent(agents.atticus, agentStates.atticus, 0.016);
-      animateAgent(agents.axel, agentStates.axel, 0.016);
-      animateAgent(agents.astra, agentStates.astra, 0.016);
-      
-      controls.update();
-      renderer.render(scene, camera);
-    }
-
-    animate();
-
-    // Handle resize
-    window.addEventListener('resize', () => {
-      const aspect = window.innerWidth / window.innerHeight;
-      camera.left = -d * aspect;
-      camera.right = d * aspect;
-      camera.top = d;
-      camera.bottom = -d;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // Status cycling for demo
-    const states = ['idle', 'working', 'exploring', 'sleeping'];
-    let stateIndex = 0;
-    
-    setInterval(() => {
-      stateIndex++;
-      const newState = states[stateIndex % states.length];
-      
-      // Cycle through agents
-      if (stateIndex % 3 === 0) {
-        agentStates.atticus = newState;
-        document.getElementById('status-atticus').textContent = newState;
-        document.getElementById('status-atticus').className = 'agent-status ' + newState;
-      } else if (stateIndex % 3 === 1) {
-        agentStates.axel = newState;
-        document.getElementById('status-axel').textContent = newState;
-        document.getElementById('status-axel').className = 'agent-status ' + newState;
-      } else {
-        agentStates.astra = newState;
-        document.getElementById('status-astra').textContent = newState;
-        document.getElementById('status-astra').className = 'agent-status ' + newState;
+      // Draw agents
+      for(const [key, agent] of Object.entries(agents)) {
+        drawAgent(key, agent);
+        maybeShowBubble(key, agent);
+        drawBubble(key, agent);
       }
-    }, 5000);
-
-    // Load real status (optional)
-    fetch('status.json')
-      .then(r => r.json())
-      .then(data => {
-        if (data.agents) {
-          Object.keys(data.agents).forEach(name => {
-            if (agentStates[name] !== undefined) {
-              agentStates[name] = data.agents[name].status;
-              const el = document.getElementById('status-' + name);
-              if (el) {
-                el.textContent = data.agents[name].status;
-                el.className = 'agent-status ' + data.agents[name].status;
-              }
-            }
-          });
-        }
-      })
-      .catch(() => {/* Use default/demo states */});
+      
+      // Apply time of day
+      applyTimeOfDay();
+      
+      updateTime();
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Initialize
+    fetchStatus();
+    loadMemo();
+    
+    // Poll status every 30s
+    setInterval(fetchStatus, 30000);
+    
+    // Demo cycle every 15s (if no real data)
+    setInterval(cycleDemo, 15000);
+    
+    // Start animation
+    animate();
   </script>
 </body>
 </html>
