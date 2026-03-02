@@ -312,6 +312,13 @@ function resizeCanvas() {
   canvas.height = H;
   ctx.imageSmoothingEnabled = false;
   updateZones();
+  // Keep cat on screen
+  if (isMobile) {
+    CAT.x = Math.min(CAT.x, W - 30);
+    CAT.y = Math.min(CAT.y, H - 30);
+    CAT.tx = Math.min(CAT.tx, W - 30);
+    CAT.ty = Math.min(CAT.ty, H - 30);
+  }
 }
 
 function updateZones() {
@@ -547,11 +554,10 @@ function drawScene() {
     drawPlant(W - 50, 70);
     drawPlant(175, 90);
     drawClock(W / 2, 68);
-    drawCat(360, 240);
   } else {
     drawPlant(W - 40, 25);
-    drawCat(W - 50, H - 40);
   }
+  drawCat();
 
   // Title plaque
   rect(W / 2 - 80, H - 22, 160, 18, '#3e2723');
@@ -624,7 +630,7 @@ setInterval(() => {
   if (elapsed > dur) catPickTarget();
 }, 2000);
 
-function drawCat(screenX, screenY) {
+function drawCat() {
   // Move toward target
   const dx = CAT.tx - CAT.x, dy = CAT.ty - CAT.y;
   const dist = Math.sqrt(dx * dx + dy * dy);
