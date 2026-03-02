@@ -924,7 +924,7 @@ const AudioEngine = (() => {
       f.type = 'lowpass';
       f.frequency.value = 600 + Math.sin(i) * 200;
       f.Q.value = 0.5;
-      g.gain.value = 0.06;
+      g.gain.value = 0.15;
       osc.connect(f);
       f.connect(g);
       g.connect(master);
@@ -981,7 +981,7 @@ const AudioEngine = (() => {
     for (let i = 0; i < count; i++) {
       const note = scale[Math.floor(Math.random() * scale.length)];
       const octave = Math.random() > 0.3 ? 0 : 12;
-      const vel = 0.03 + Math.random() * 0.04 * energy;
+      const vel = 0.08 + Math.random() * 0.08 * energy;
       const dur = 0.8 + Math.random() * 1.5;
       playNote(mtof(note + octave), now + i * speed + Math.random() * 0.05, dur, vel);
     }
@@ -1005,7 +1005,7 @@ const AudioEngine = (() => {
     f.frequency.value = 300;
     f.Q.value = 0.3;
     const g = actx.createGain();
-    g.gain.value = 0.008;
+    g.gain.value = 0.02;
     noise.connect(f);
     f.connect(g);
     g.connect(master);
@@ -1026,8 +1026,10 @@ const AudioEngine = (() => {
       master.gain.linearRampToValueAtTime(0, actx.currentTime + 0.5);
       playing = false;
     } else {
-      if (actx.state === 'suspended') actx.resume();
-      master.gain.linearRampToValueAtTime(0.7, actx.currentTime + 0.5);
+      actx.resume().then(() => {
+        master.gain.setValueAtTime(master.gain.value, actx.currentTime);
+        master.gain.linearRampToValueAtTime(1.0, actx.currentTime + 0.5);
+      });
       playing = true;
     }
     return playing;
