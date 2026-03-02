@@ -845,34 +845,36 @@ function drawBubble(key) {
   const bx = Math.round(a.x) + 6;
   const by = Math.round(a.y) - 18;
   const text = a.bubble;
-  const scale = isMobile ? 0.75 : 1;
-  const tw = text.length * 5 * scale + 14 * scale;
+  const scale = isMobile ? 0.8 : 1;
+  const tw = text.length * 6 * scale + 18 * scale;
 
   ctx.globalAlpha = alpha;
 
-  // Bubble shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  // Bubble border (agent color)
+  const agentColor = { atticus: '#C49B30', axel: '#FF8C00', astra: '#D4652A' }[key] || '#888';
+  ctx.strokeStyle = agentColor;
+  ctx.lineWidth = 2 * scale;
   ctx.beginPath();
-  ctx.roundRect(bx - tw / 2 + 1 * scale, by - 7 * scale, tw, 16 * scale, 3 * scale);
-  ctx.fill();
+  ctx.roundRect(bx - tw / 2 - 2, by - 10 * scale - 2, tw + 4, 20 * scale + 4, 5 * scale);
+  ctx.stroke();
 
   // Bubble bg
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.roundRect(bx - tw / 2, by - 8 * scale, tw, 16 * scale, 3 * scale);
+  ctx.roundRect(bx - tw / 2, by - 10 * scale, tw, 20 * scale, 5 * scale);
   ctx.fill();
   // Pointer
   ctx.beginPath();
-  ctx.moveTo(bx - 3 * scale, by + 8 * scale);
-  ctx.lineTo(bx, by + 12 * scale);
-  ctx.lineTo(bx + 3 * scale, by + 8 * scale);
+  ctx.moveTo(bx - 4 * scale, by + 10 * scale);
+  ctx.lineTo(bx, by + 16 * scale);
+  ctx.lineTo(bx + 4 * scale, by + 10 * scale);
   ctx.fill();
 
   // Text
-  ctx.fillStyle = '#000';
-  ctx.font = (7 * scale) + 'px "Pixelify Sans", sans-serif';
+  ctx.fillStyle = '#111';
+  ctx.font = 'bold ' + (9 * scale) + 'px "Pixelify Sans", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(text, bx, by + 3 * scale);
+  ctx.fillText(text, bx, by + 4 * scale);
   ctx.textAlign = 'left';
 
   ctx.globalAlpha = 1;
