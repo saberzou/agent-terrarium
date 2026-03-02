@@ -190,6 +190,25 @@
       color: #666;
       text-transform: capitalize;
     }
+    .project-link {
+      display: block;
+      text-decoration: none;
+      padding: 2px 0;
+      transition: opacity .2s;
+    }
+    .project-link:hover { opacity: 0.7; }
+    .project-name {
+      font-family: 'Pixelify Sans', sans-serif;
+      font-size: 14px;
+      color: #C4A040;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .project-desc {
+      font-size: 12px;
+      color: #666;
+      display: block;
+    }
 
     @media (max-width: 600px) {
       body { padding: 0; }
@@ -228,8 +247,14 @@
     <p style="margin-top:10px;color:#666;font-size:12px;">🐻 Atticus — the bear. Analytical, warm, gets things done.<br>🐯 Axel — the tiger. Creative, playful, chaotic good.<br>🦝 Astra — the red panda. Life coach, supportive, kind.</p>
   </div>
   <div id="panel-tasks" style="display:none">
-    <h3>Current Activity</h3>
-    <ul id="task-list"></ul>
+    <h3>Projects</h3>
+    <ul id="task-list">
+      <li><a class="project-link" href="https://saberzou.github.io/pixel-dailies/" target="_blank"><span class="project-name">Pixel Dailies</span><span class="project-desc">Daily 20×20 pixel art, auto-generated and committed every morning</span></a></li>
+      <li><a class="project-link" href="https://saberzou.github.io/json-prompts/" target="_blank"><span class="project-name">JSON Prompts</span><span class="project-desc">Curated gallery of AI image generation prompts</span></a></li>
+      <li><a class="project-link" href="https://saberzou.github.io/between-floors/" target="_blank"><span class="project-name">Between Floors</span><span class="project-desc">Interactive elevator story for English learning</span></a></li>
+      <li><a class="project-link" href="https://saberzou.github.io/saber-site/" target="_blank"><span class="project-name">Saber Site</span><span class="project-desc">Saber's personal portfolio and project showcase</span></a></li>
+      <li><a class="project-link" href="https://saberzou.github.io/agent-terrarium/" target="_blank"><span class="project-name">Agent Terrarium</span><span class="project-desc">You're looking at it — where the agents live</span></a></li>
+    </ul>
   </div>
 </div>
 <nav id="pill-bar">
@@ -825,18 +850,13 @@ function togglePanel(tab) {
   pillBar.querySelectorAll('.pill-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   panelIntro.style.display = tab === 'intro' ? '' : 'none';
   panelTasks.style.display = tab === 'tasks' ? '' : 'none';
-  if (tab === 'tasks') updateTaskList();
+  if (tab === 'tasks') {} // static content now
   panel.classList.add('open');
   overlay.classList.add('open');
   panelOpen = true;
 }
 
-function updateTaskList() {
-  taskList.innerHTML = Object.entries(AGENTS).map(([key, a]) => {
-    const task = a.task || 'No current task';
-    return `<li><div class="task-agent ${key}">${a.name}</div><div class="task-status">${a.status} — ${task}</div></li>`;
-  }).join('');
-}
+
 
 pillBar.addEventListener('click', e => {
   const tab = e.target.closest('.pill-tab');
