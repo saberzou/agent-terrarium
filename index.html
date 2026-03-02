@@ -255,20 +255,14 @@
     <p style="margin-top:10px;color:#666;font-size:12px;">🐻 Atticus — the bear. Analytical, warm, gets things done.<br>🐯 Axel — the tiger. Creative, playful, chaotic good.<br>🦝 Astra — the red panda. Life coach, supportive, kind.</p>
   </div>
   <div id="panel-tasks" style="display:none">
-    <h3>Projects</h3>
-    <ul id="task-list">
-      <li><a class="project-link" href="https://saberzou.github.io/pixel-dailies/" target="_blank"><span class="project-name">Pixel Dailies</span><span class="project-desc">Daily 20×20 pixel art, auto-generated and committed every morning</span></a></li>
-      <li><a class="project-link" href="https://saberzou.github.io/json-prompts/" target="_blank"><span class="project-name">JSON Prompts</span><span class="project-desc">Curated gallery of AI image generation prompts</span></a></li>
-      <li><a class="project-link" href="https://saberzou.github.io/between-floors/" target="_blank"><span class="project-name">Between Floors</span><span class="project-desc">Interactive elevator story for English learning</span></a></li>
-      <li><a class="project-link" href="https://saberzou.github.io/saber-site/" target="_blank"><span class="project-name">Saber Site</span><span class="project-desc">Saber's personal portfolio and project showcase</span></a></li>
-      <li><a class="project-link" href="https://saberzou.github.io/agent-terrarium/" target="_blank"><span class="project-name">Agent Terrarium</span><span class="project-desc">You're looking at it — where the agents live</span></a></li>
-    </ul>
+    <h3>Activity Feed</h3>
+    <ul id="task-list"></ul>
   </div>
 </div>
 <nav id="pill-bar">
   <button class="pill-tab active" data-tab="terrarium">Terrarium</button>
   <button class="pill-tab" data-tab="intro">Intro</button>
-  <button class="pill-tab" data-tab="tasks">Tasks</button>
+  <button class="pill-tab" data-tab="tasks">Activity</button>
   <button class="pill-tab" id="audio-toggle" title="Toggle music">🔇</button>
 </nav>
 
@@ -899,48 +893,112 @@ function updateCards() {
   }
 }
 
-// ─── FETCH ───
-async function fetchStatus() {
-  try {
-    const r = await fetch('status.json?t=' + Date.now());
-    const d = await r.json();
-    if (d.agents) {
-      liveData = true;
-      for (const [k, info] of Object.entries(d.agents)) {
-        if (!AGENTS[k]) continue;
-        AGENTS[k].status = info.status || 'idle';
-        AGENTS[k].task = info.task || '';
-        const t = targetForAgent(k);
-        AGENTS[k].tx = t.x;
-        AGENTS[k].ty = t.y;
-      }
-    }
-    updateCards();
-  } catch (e) {
-    // Fallback to demo mode
-  }
-}
+// ─── RICH SIMULATION ENGINE ───
+// Each agent has their own schedule of activities that cycle through
+const ACTIVITIES = {
+  atticus: [
+    { status: 'working', task: 'Pixel Dailies — painting today\'s piece', dur: [15,25], thoughts: ['Palette feels right.', '20×20 is tricky.', 'Almost done.', 'One more frame.'] },
+    { status: 'idle', task: '', dur: [8,15], thoughts: ['Coffee break.', 'Hmm.', 'Reading docs.', 'Reviewing notes.'] },
+    { status: 'working', task: 'Updating saber-site', dur: [12,20], thoughts: ['Shipping soon.', 'Clean code.', 'Refactoring...', 'One more commit.'] },
+    { status: 'exploring', task: 'Reading Hacker News', dur: [6,12], thoughts: ['Interesting.', 'What if...', 'Noted.', 'Worth sharing.'] },
+    { status: 'working', task: 'Reviewing pull requests', dur: [8,14], thoughts: ['LGTM?', 'Needs a fix.', 'Nice pattern.', 'Approving.'] },
+    { status: 'idle', task: '', dur: [5,10], thoughts: ['Organizing files.', 'Thinking.', 'Tea time.'] },
+    { status: 'working', task: 'Writing memory notes', dur: [6,10], thoughts: ['Capturing this.', 'Future me needs this.', 'Logging.'] },
+    { status: 'exploring', task: 'Checking emails', dur: [4,8], thoughts: ['Inbox zero?', 'New thread.', 'Flagged.'] },
+  ],
+  axel: [
+    { status: 'working', task: 'Generating visual art', dur: [12,22], thoughts: ['Ship it! 🚀', 'Wild idea.', 'Trust the process.', 'Colors go brr.'] },
+    { status: 'exploring', task: 'Browsing design inspo', dur: [8,15], thoughts: ['Ooh shiny!', 'New style!', 'What if...', 'Stealing this.'] },
+    { status: 'idle', task: '', dur: [6,12], thoughts: ['Bored.', 'Snack time?', 'Vibing.', 'What\'s next?'] },
+    { status: 'working', task: 'Axel Art — new collection', dur: [15,25], thoughts: ['Painting pixels.', 'This slaps.', 'Creative flow!', 'Almost there.'] },
+    { status: 'working', task: 'Writing blog post', dur: [8,14], thoughts: ['Words hard.', 'Nailed that line.', 'Draft 3...', 'Publishing!'] },
+    { status: 'exploring', task: 'Watching tutorials', dur: [6,10], thoughts: ['Learning!', 'Mind blown.', 'Taking notes.', 'Adventure!'] },
+    { status: 'idle', task: '', dur: [5,8], thoughts: ['Nap time?', 'Stretching.', 'Let\'s vibe.'] },
+    { status: 'error', task: 'Debugging canvas render', dur: [4,8], thoughts: ['Oops.', 'My bad?', 'Ctrl+Z!', 'Found it!'] },
+  ],
+  astra: [
+    { status: 'working', task: 'Afternoon wellness check-in', dur: [10,18], thoughts: ['You got this.', 'Good pace.', 'Stay focused.', 'One step at a time.'] },
+    { status: 'idle', task: '', dur: [8,15], thoughts: ['Stretch break!', 'Breathe.', 'Hydrate! 💧', 'Rest is work too.'] },
+    { status: 'working', task: 'Planning workout routine', dur: [8,14], thoughts: ['Core day.', 'Progressive overload.', 'Form first.', 'Rest 60s.'] },
+    { status: 'exploring', task: 'Reading health articles', dur: [6,12], thoughts: ['New perspective.', 'Growing.', 'Good study.', 'Open mind.'] },
+    { status: 'working', task: 'Morning briefing prep', dur: [8,12], thoughts: ['Summarizing.', 'Key points...', 'Almost ready.', 'Delivering.'] },
+    { status: 'idle', task: '', dur: [6,10], thoughts: ['Meditating.', 'Peaceful.', 'Gratitude moment.'] },
+    { status: 'working', task: 'Tracking habits', dur: [5,10], thoughts: ['Logging streak.', '7 days strong.', 'Consistency wins.'] },
+    { status: 'exploring', task: 'Researching recipes', dur: [5,8], thoughts: ['Protein-rich.', 'Looks delicious.', 'Meal prep idea.'] },
+  ],
+};
 
-// ─── DEMO CYCLE ───
-let demoTick = 0;
-let liveData = false;
-const DEMO_STATES = ['working', 'idle', 'exploring', 'error', 'sleeping'];
-function demoCycle() {
-  if (liveData) return; // Real data available, skip demo
-  const keys = Object.keys(AGENTS);
-  keys.forEach((k, i) => {
-    AGENTS[k].status = DEMO_STATES[(demoTick + i) % DEMO_STATES.length];
-    const t = targetForAgent(k);
-    AGENTS[k].tx = t.x;
-    AGENTS[k].ty = t.y;
-  });
-  demoTick++;
+// Each agent tracks their own activity index and timer
+const SIM = {
+  atticus: { idx: 0, nextAt: 0, customThoughts: null },
+  axel:    { idx: 2, nextAt: 0, customThoughts: null },
+  astra:   { idx: 4, nextAt: 0, customThoughts: null },
+};
+
+function advanceAgent(key) {
+  const sim = SIM[key];
+  const acts = ACTIVITIES[key];
+  const now = Date.now();
+  if (now < sim.nextAt) return;
+
+  // Pick next activity (sequential with some randomness)
+  sim.idx = (sim.idx + 1 + Math.floor(Math.random() * 2)) % acts.length;
+  const act = acts[sim.idx];
+
+  // Apply time-of-day override
+  const h = new Date().getHours();
+  if (h >= 23 || h < 7) {
+    AGENTS[key].status = 'sleeping';
+    AGENTS[key].task = '';
+    sim.customThoughts = ['zzz', '...', 'dreaming'];
+    sim.nextAt = now + (20 + Math.random() * 20) * 1000;
+  } else {
+    AGENTS[key].status = act.status;
+    AGENTS[key].task = act.task;
+    sim.customThoughts = act.thoughts;
+    const dur = act.dur[0] + Math.random() * (act.dur[1] - act.dur[0]);
+    sim.nextAt = now + dur * 1000;
+  }
+
+  const t = targetForAgent(key);
+  AGENTS[key].tx = t.x;
+  AGENTS[key].ty = t.y;
   updateCards();
 }
+
+// Override thought bubbles to use current activity thoughts
+const _origMaybeBubble = maybeBubble;
+maybeBubble = function(key) {
+  const a = AGENTS[key];
+  if (a.bubble && Date.now() - a.bubbleAt > 3500) a.bubble = null;
+  if (a.bubble) return;
+  if (Math.random() > 0.005) return;
+
+  const pool = SIM[key].customThoughts || THOUGHTS[key][a.status] || THOUGHTS[key].idle;
+  a.bubble = pool[Math.floor(Math.random() * pool.length)];
+  a.bubbleAt = Date.now();
+};
+
+// ─── ACTIVITY FEED ───
+const FEED_ITEMS = [
+  { agent: 'atticus', icon: '🎨', text: 'Generated "Koi" pixel art', time: '2h ago' },
+  { agent: 'atticus', icon: '📝', text: 'Updated MEMORY.md', time: '3h ago' },
+  { agent: 'axel', icon: '🖼️', text: 'New visual art collection pushed', time: '4h ago' },
+  { agent: 'axel', icon: '✍️', text: 'Published creative writing piece', time: '6h ago' },
+  { agent: 'astra', icon: '💪', text: 'Completed wellness check-in', time: '5h ago' },
+  { agent: 'astra', icon: '📊', text: 'Habit tracker updated — 7 day streak', time: '8h ago' },
+  { agent: 'atticus', icon: '🚀', text: 'Deployed saber-site update', time: '10h ago' },
+  { agent: 'axel', icon: '🐛', text: 'Fixed canvas rendering bug', time: '12h ago' },
+  { agent: 'astra', icon: '🧘', text: 'Morning meditation logged', time: '14h ago' },
+  { agent: 'atticus', icon: '📬', text: 'Processed 3 emails', time: '16h ago' },
+];
 
 // ─── MAIN LOOP ───
 function frame() {
   drawScene();
+
+  // Advance simulation
+  for (const k of Object.keys(AGENTS)) advanceAgent(k);
 
   // Sort agents by y for depth
   const sorted = Object.keys(AGENTS).sort((a, b) => AGENTS[a].y - AGENTS[b].y);
@@ -981,7 +1039,18 @@ function togglePanel(tab) {
   pillBar.querySelectorAll('.pill-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   panelIntro.style.display = tab === 'intro' ? '' : 'none';
   panelTasks.style.display = tab === 'tasks' ? '' : 'none';
-  if (tab === 'tasks') {} // static content now
+  if (tab === 'tasks') {
+    // Populate activity feed
+    const list = document.getElementById('task-list');
+    list.innerHTML = FEED_ITEMS.map(item => {
+      const agentColor = { atticus: '#C49B30', axel: '#FF8C00', astra: '#D4652A' }[item.agent] || '#888';
+      return `<li>
+        <div class="task-agent" style="color:${agentColor}">${item.icon} ${item.agent.charAt(0).toUpperCase() + item.agent.slice(1)}</div>
+        <div style="font-size:13px;color:#ccc">${item.text}</div>
+        <div class="task-status">${item.time}</div>
+      </li>`;
+    }).join('');
+  }
   panel.classList.add('open');
   overlay.classList.add('open');
   panelOpen = true;
@@ -1155,9 +1224,6 @@ document.getElementById('audio-toggle').addEventListener('click', e => {
 // Init
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
-fetchStatus();
-setInterval(fetchStatus, 30000);
-setInterval(demoCycle, 12000);
 frame();
 </script>
 </body>
