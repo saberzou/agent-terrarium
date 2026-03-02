@@ -485,10 +485,11 @@ function drawScene() {
   // ─── LOUNGE ───
   const lz = ZONES.lounge;
   const couchW = isMobile ? 120 : 90;
-  rect(lz.x + 15, lz.y + 40, couchW, 20, PAL.couch);
-  rect(lz.x + 15, lz.y + 34, couchW, 10, PAL.couchSeat);
-  rect(lz.x + 20, lz.y + 36, 20, 8, '#795548');
-  rect(lz.x + 15 + couchW - 25, lz.y + 36, 20, 8, '#795548');
+  // Dark gray couch
+  rect(lz.x + 15, lz.y + 40, couchW, 20, '#2a2a2a');
+  rect(lz.x + 15, lz.y + 34, couchW, 10, '#3a3a3a');
+  rect(lz.x + 20, lz.y + 36, 20, 8, '#333');
+  rect(lz.x + 15 + couchW - 25, lz.y + 36, 20, 8, '#333');
   // Coffee table
   rect(lz.x + 40 + (isMobile ? 20 : 0), lz.y + 65, 40, 14, PAL.deskWood);
   rect(lz.x + 55 + (isMobile ? 20 : 0), lz.y + 61, 8, 8, '#ddd');
@@ -497,13 +498,20 @@ function drawScene() {
   ctx.globalAlpha = 0.3;
   ctx.fillRect(lz.x + 57 + (isMobile ? 20 : 0) + Math.sin(st) * 2, lz.y + 53 - (st % 3) * 3, 4, 4);
   ctx.globalAlpha = 1;
-  // Red sofa
-  const rsX = lz.x + (isMobile ? 160 : 20);
-  const rsY = lz.y + (isMobile ? 40 : 80);
-  rect(rsX, rsY + 6, 70, 16, '#8B1A1A');
-  rect(rsX, rsY, 70, 10, '#C62828');
-  rect(rsX + 2, rsY + 2, 18, 7, '#D32F2F');
-  rect(rsX + 50, rsY + 2, 18, 7, '#D32F2F');
+  // 4 red chairs
+  const chairStartX = lz.x + (isMobile ? 150 : 15);
+  const chairStartY = lz.y + (isMobile ? 40 : 78);
+  const chairGap = isMobile ? 22 : 20;
+  for (let i = 0; i < 4; i++) {
+    const cx = chairStartX + i * chairGap;
+    // Seat
+    rect(cx, chairStartY + 4, 14, 10, '#C62828');
+    // Back
+    rect(cx + 1, chairStartY, 12, 6, '#8B1A1A');
+    // Legs
+    rect(cx, chairStartY + 14, 3, 4, '#5a1010');
+    rect(cx + 11, chairStartY + 14, 3, 4, '#5a1010');
+  }
 
   // ─── SERVER ROOM ───
   const sz = ZONES.server;
