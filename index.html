@@ -497,6 +497,13 @@ function drawScene() {
   ctx.globalAlpha = 0.3;
   ctx.fillRect(lz.x + 57 + (isMobile ? 20 : 0) + Math.sin(st) * 2, lz.y + 53 - (st % 3) * 3, 4, 4);
   ctx.globalAlpha = 1;
+  // Red sofa
+  const rsX = lz.x + (isMobile ? 160 : 20);
+  const rsY = lz.y + (isMobile ? 40 : 80);
+  rect(rsX, rsY + 6, 70, 16, '#8B1A1A');
+  rect(rsX, rsY, 70, 10, '#C62828');
+  rect(rsX + 2, rsY + 2, 18, 7, '#D32F2F');
+  rect(rsX + 50, rsY + 2, 18, 7, '#D32F2F');
 
   // ─── SERVER ROOM ───
   const sz = ZONES.server;
