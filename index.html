@@ -233,7 +233,8 @@
   </div>
 </div>
 <nav id="pill-bar">
-  <button class="pill-tab active" data-tab="intro">Intro</button>
+  <button class="pill-tab active" data-tab="terrarium">Terrarium</button>
+  <button class="pill-tab" data-tab="intro">Intro</button>
   <button class="pill-tab" data-tab="tasks">Tasks</button>
 </nav>
 
@@ -807,22 +808,24 @@ const panelIntro = document.getElementById('panel-intro');
 const panelTasks = document.getElementById('panel-tasks');
 const taskList = document.getElementById('task-list');
 
+function closePanel() {
+  panel.classList.remove('open');
+  overlay.classList.remove('open');
+  panelOpen = false;
+  activeTab = 'terrarium';
+  pillBar.querySelectorAll('.pill-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'terrarium'));
+}
+
 function togglePanel(tab) {
-  if (panelOpen && activeTab === tab) {
-    // Close
-    panel.classList.remove('open');
-    overlay.classList.remove('open');
-    panelOpen = false;
+  if (tab === 'terrarium' || (panelOpen && activeTab === tab)) {
+    closePanel();
     return;
   }
   activeTab = tab;
-  // Update tabs
   pillBar.querySelectorAll('.pill-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  // Show correct content
   panelIntro.style.display = tab === 'intro' ? '' : 'none';
   panelTasks.style.display = tab === 'tasks' ? '' : 'none';
   if (tab === 'tasks') updateTaskList();
-  // Open
   panel.classList.add('open');
   overlay.classList.add('open');
   panelOpen = true;
@@ -839,11 +842,7 @@ pillBar.addEventListener('click', e => {
   const tab = e.target.closest('.pill-tab');
   if (tab) togglePanel(tab.dataset.tab);
 });
-overlay.addEventListener('click', () => {
-  panel.classList.remove('open');
-  overlay.classList.remove('open');
-  panelOpen = false;
-});
+overlay.addEventListener('click', closePanel);
 
 // Init
 resizeCanvas();
