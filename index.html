@@ -850,14 +850,6 @@ function drawBubble(key) {
 
   ctx.globalAlpha = alpha;
 
-  // Bubble border (agent color)
-  const agentColor = { atticus: '#C49B30', axel: '#FF8C00', astra: '#D4652A' }[key] || '#888';
-  ctx.strokeStyle = agentColor;
-  ctx.lineWidth = 2 * scale;
-  ctx.beginPath();
-  ctx.roundRect(bx - tw / 2 - 2, by - 10 * scale - 2, tw + 4, 20 * scale + 4, 5 * scale);
-  ctx.stroke();
-
   // Bubble bg
   ctx.fillStyle = '#fff';
   ctx.beginPath();
