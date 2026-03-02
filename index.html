@@ -495,11 +495,11 @@ function drawScene() {
   // ─── LOUNGE ───
   const lz = ZONES.lounge;
   const couchW = isMobile ? 120 : 90;
-  // Dark gray couch
-  rect(lz.x + 15, lz.y + 40, couchW, 20, '#2a2a2a');
-  rect(lz.x + 15, lz.y + 34, couchW, 10, '#3a3a3a');
-  rect(lz.x + 20, lz.y + 36, 20, 8, '#333');
-  rect(lz.x + 15 + couchW - 25, lz.y + 36, 20, 8, '#333');
+  // Dark gray couch (near black for visibility)
+  rect(lz.x + 15, lz.y + 40, couchW, 20, '#111');
+  rect(lz.x + 15, lz.y + 34, couchW, 10, '#1a1a1a');
+  rect(lz.x + 20, lz.y + 36, 20, 8, '#222');
+  rect(lz.x + 15 + couchW - 25, lz.y + 36, 20, 8, '#222');
   // Coffee table
   rect(lz.x + 40 + (isMobile ? 20 : 0), lz.y + 65, 40, 14, PAL.deskWood);
   rect(lz.x + 55 + (isMobile ? 20 : 0), lz.y + 61, 8, 8, '#ddd');
