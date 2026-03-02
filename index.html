@@ -122,6 +122,14 @@
     .pill-tab:hover:not(.active) {
       color: #bbb;
     }
+    #audio-toggle {
+      border-left: 1px solid #333;
+      margin-left: 2px;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    #audio-toggle:hover { opacity: 0.8; }
 
     /* ─── PANEL ─── */
     #panel-overlay {
@@ -261,6 +269,7 @@
   <button class="pill-tab active" data-tab="terrarium">Terrarium</button>
   <button class="pill-tab" data-tab="intro">Intro</button>
   <button class="pill-tab" data-tab="tasks">Tasks</button>
+  <button class="pill-tab" id="audio-toggle" title="Toggle music">🔇</button>
 </nav>
 
 <div id="canvas-wrap">
@@ -878,6 +887,161 @@ pillBar.addEventListener('click', e => {
   if (tab) togglePanel(tab.dataset.tab);
 });
 overlay.addEventListener('click', closePanel);
+
+// ─── GENERATIVE AUDIO ENGINE ───
+const AudioEngine = (() => {
+  let actx, master, playing = false;
+  const notes = [48,50,52,55,57,60,62,64,67,69]; // C minor pentatonic across 2 octaves
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  function init() {
+    if (actx) return;
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    master = actx.createGain();
+    master.gain.value = 0;
+    master.connect(actx.destination);
+
+    // Soft pad drone
+    startPad();
+    // Arpeggio loop
+    scheduleArp();
+    // Ambient texture
+    startTexture();
+  }
+
+  function startPad() {
+    const h = new Date().getHours();
+    // Night = lower, warmer. Day = brighter
+    const baseNote = (h >= 22 || h < 7) ? 43 : (h >= 7 && h < 18) ? 48 : 45;
+    [0, 7, 12, 16].forEach((interval, i) => {
+      const osc = actx.createOscillator();
+      const g = actx.createGain();
+      const f = actx.createBiquadFilter();
+      osc.type = 'sine';
+      osc.frequency.value = mtof(baseNote + interval);
+      // Slow detune drift
+      osc.detune.value = Math.sin(i * 1.5) * 8;
+      f.type = 'lowpass';
+      f.frequency.value = 600 + Math.sin(i) * 200;
+      f.Q.value = 0.5;
+      g.gain.value = 0.06;
+      osc.connect(f);
+      f.connect(g);
+      g.connect(master);
+      osc.start();
+      // Gentle LFO on filter
+      const lfo = actx.createOscillator();
+      const lfoG = actx.createGain();
+      lfo.frequency.value = 0.05 + i * 0.02;
+      lfoG.gain.value = 150;
+      lfo.connect(lfoG);
+      lfoG.connect(f.frequency);
+      lfo.start();
+    });
+  }
+
+  function playNote(freq, time, dur, vel) {
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    const f = actx.createBiquadFilter();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    f.type = 'lowpass';
+    f.frequency.value = 1200;
+    f.Q.value = 1;
+    g.gain.setValueAtTime(0, time);
+    g.gain.linearRampToValueAtTime(vel, time + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(f);
+    f.connect(g);
+    g.connect(master);
+    osc.start(time);
+    osc.stop(time + dur + 0.1);
+  }
+
+  function getEnergy() {
+    // Check agent states for musical energy
+    const states = Object.values(AGENTS).map(a => a.status);
+    const working = states.filter(s => s === 'working').length;
+    const sleeping = states.filter(s => s === 'sleeping').length;
+    if (sleeping >= 2) return 0.3;  // Very calm
+    if (working >= 2) return 0.9;   // Busy energy
+    return 0.6; // Normal
+  }
+
+  function scheduleArp() {
+    if (!actx) return;
+    const energy = getEnergy();
+    const now = actx.currentTime;
+    // 4-8 notes per phrase depending on energy
+    const count = Math.floor(3 + energy * 5);
+    const speed = 0.25 - energy * 0.1; // Faster when energetic
+    const scale = energy > 0.7 ? notes.slice(4) : notes.slice(0, 7); // Higher notes when busy
+
+    for (let i = 0; i < count; i++) {
+      const note = scale[Math.floor(Math.random() * scale.length)];
+      const octave = Math.random() > 0.3 ? 0 : 12;
+      const vel = 0.03 + Math.random() * 0.04 * energy;
+      const dur = 0.8 + Math.random() * 1.5;
+      playNote(mtof(note + octave), now + i * speed + Math.random() * 0.05, dur, vel);
+    }
+
+    // Schedule next phrase: 3-6 seconds
+    const nextIn = (3 + Math.random() * 3) * 1000;
+    setTimeout(scheduleArp, nextIn);
+  }
+
+  function startTexture() {
+    // Filtered noise for atmosphere
+    const bufSize = actx.sampleRate * 2;
+    const buf = actx.createBuffer(1, bufSize, actx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const noise = actx.createBufferSource();
+    noise.buffer = buf;
+    noise.loop = true;
+    const f = actx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 300;
+    f.Q.value = 0.3;
+    const g = actx.createGain();
+    g.gain.value = 0.008;
+    noise.connect(f);
+    f.connect(g);
+    g.connect(master);
+    noise.start();
+    // Slow sweep
+    const lfo = actx.createOscillator();
+    const lfoG = actx.createGain();
+    lfo.frequency.value = 0.03;
+    lfoG.gain.value = 200;
+    lfo.connect(lfoG);
+    lfoG.connect(f.frequency);
+    lfo.start();
+  }
+
+  function toggle() {
+    init();
+    if (playing) {
+      master.gain.linearRampToValueAtTime(0, actx.currentTime + 0.5);
+      playing = false;
+    } else {
+      if (actx.state === 'suspended') actx.resume();
+      master.gain.linearRampToValueAtTime(0.7, actx.currentTime + 0.5);
+      playing = true;
+    }
+    return playing;
+  }
+
+  return { toggle, isPlaying: () => playing };
+})();
+
+// Audio toggle button
+document.getElementById('audio-toggle').addEventListener('click', e => {
+  e.stopPropagation();
+  const on = AudioEngine.toggle();
+  e.currentTarget.textContent = on ? '🔊' : '🔇';
+});
 
 // Init
 resizeCanvas();
