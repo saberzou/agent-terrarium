@@ -585,35 +585,133 @@ function drawClock(cx, cy) {
   ctx.stroke();
 }
 
-let catBlink = 0;
-function drawCat(x, y) {
-  // Body
-  rect(x, y, 16, 10, '#c49040');
-  // Head
-  rect(x + 2, y - 6, 8, 8, '#c49040');
-  // Ears
-  rect(x + 1, y - 8, 4, 4, '#c49040');
-  rect(x + 7, y - 8, 4, 4, '#c49040');
-  // Tail
-  rect(x + 14, y + 2, 8, 4, '#c49040');
-  rect(x + 20, y, 4, 4, '#c49040');
-  // Eyes (blink)
-  if (Math.floor(Date.now() / 3000) % 5 === 0) {
-    ctx.fillStyle = '#111';
-    ctx.fillRect(x + 4, y - 3, 2, 1);
-    ctx.fillRect(x + 7, y - 3, 2, 1);
-  } else {
-    ctx.fillStyle = '#111';
-    ctx.fillRect(x + 4, y - 4, 2, 2);
-    ctx.fillRect(x + 7, y - 4, 2, 2);
+// ─── CAT ───
+const CAT = {
+  x: 360, y: 240, tx: 360, ty: 240,
+  state: 'sleeping', // sleeping, walking, sitting, grooming
+  stateAt: 0, facingLeft: false,
+};
+
+function catPickTarget() {
+  const states = ['sleeping', 'walking', 'sitting', 'grooming'];
+  const weights = [0.3, 0.35, 0.2, 0.15];
+  let r = Math.random(), cum = 0;
+  let next = 'sitting';
+  for (let i = 0; i < states.length; i++) {
+    cum += weights[i];
+    if (r < cum) { next = states[i]; break; }
   }
-  // Zzz
-  if (Math.floor(Date.now() / 1500) % 3 < 2) {
+  CAT.state = next;
+  CAT.stateAt = Date.now();
+  if (next === 'walking') {
+    // Pick a random spot on the floor
+    if (isMobile) {
+      CAT.tx = 30 + Math.random() * (W - 80);
+      CAT.ty = 40 + Math.random() * (H - 80);
+    } else {
+      CAT.tx = 40 + Math.random() * (W - 100);
+      CAT.ty = 120 + Math.random() * 110;
+    }
+    CAT.facingLeft = CAT.tx < CAT.x;
+  }
+}
+
+// Pick first target
+setTimeout(() => { catPickTarget(); }, 3000);
+setInterval(() => {
+  const elapsed = Date.now() - CAT.stateAt;
+  const dur = CAT.state === 'sleeping' ? 8000 : CAT.state === 'walking' ? 10000 : 5000;
+  if (elapsed > dur) catPickTarget();
+}, 2000);
+
+function drawCat(screenX, screenY) {
+  // Move toward target
+  const dx = CAT.tx - CAT.x, dy = CAT.ty - CAT.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const isMoving = CAT.state === 'walking' && dist > 2;
+  if (isMoving) {
+    CAT.x += dx * 0.03;
+    CAT.y += dy * 0.03;
+    CAT.facingLeft = dx < 0;
+  } else if (CAT.state === 'walking' && dist <= 2) {
+    // Arrived — pick new state
+    catPickTarget();
+  }
+
+  const x = Math.round(CAT.x);
+  const y = Math.round(CAT.y);
+  const fl = CAT.facingLeft;
+  const walkBob = isMoving ? Math.sin(Date.now() / 100) * 1 : 0;
+
+  ctx.save();
+  if (fl) {
+    ctx.translate(x + 10, 0);
+    ctx.scale(-1, 1);
+    ctx.translate(-(x + 10), 0);
+  }
+
+  if (CAT.state === 'sleeping') {
+    // Curled up loaf
+    rect(x, y + 2, 16, 8, '#c49040');
+    rect(x + 2, y, 6, 4, '#c49040');
+    // Ears
+    rect(x + 1, y - 2, 3, 3, '#c49040');
+    rect(x + 6, y - 2, 3, 3, '#c49040');
+    // Closed eyes
+    ctx.fillStyle = '#111';
+    ctx.fillRect(x + 3, y + 1, 2, 1);
+    // Tail wraps around
+    rect(x + 14, y + 4, 6, 3, '#c49040');
+    rect(x + 18, y + 2, 4, 3, '#b08030');
+    // Zzz
+    const t = Date.now() / 1200;
     ctx.fillStyle = '#555';
     ctx.font = '6px monospace';
-    ctx.fillText('z', x + 14, y - 8);
-    ctx.fillText('z', x + 18, y - 13);
+    ctx.fillText('z', x + 12, y - 4 - (t % 3) * 2);
+    ctx.fillText('z', x + 16, y - 9 - (t % 3) * 2);
+  } else if (CAT.state === 'grooming') {
+    // Sitting up, licking paw
+    rect(x + 2, y, 12, 12, '#c49040');
+    rect(x + 4, y - 6, 8, 8, '#c49040');
+    // Ears
+    rect(x + 3, y - 8, 3, 3, '#c49040');
+    rect(x + 8, y - 8, 3, 3, '#c49040');
+    // Eyes half-closed
+    ctx.fillStyle = '#111';
+    ctx.fillRect(x + 5, y - 4, 2, 1);
+    ctx.fillRect(x + 9, y - 4, 2, 1);
+    // Paw up (animated lick)
+    const lick = Math.sin(Date.now() / 300) > 0;
+    rect(x + (lick ? 1 : 2), y + 2, 4, 4, '#c49040');
+    // Tail
+    rect(x + 12, y + 6, 6, 3, '#c49040');
+  } else {
+    // Standing / walking / sitting
+    rect(x, y, 16, 10, '#c49040');
+    rect(x + 2, y - 6, 8, 8, '#c49040');
+    // Ears
+    rect(x + 1, y - 8, 4, 4, '#c49040');
+    rect(x + 7, y - 8, 4, 4, '#c49040');
+    // Eyes
+    if (Math.floor(Date.now() / 3000) % 5 === 0) {
+      ctx.fillStyle = '#111';
+      ctx.fillRect(x + 4, y - 3, 2, 1);
+      ctx.fillRect(x + 7, y - 3, 2, 1);
+    } else {
+      ctx.fillStyle = '#111';
+      ctx.fillRect(x + 4, y - 4, 2, 2);
+      ctx.fillRect(x + 7, y - 4, 2, 2);
+    }
+    // Tail
+    const tailWag = Math.sin(Date.now() / 400) * 2;
+    rect(x + 14, y + 2, 8, 4, '#c49040');
+    rect(x + 20, y + tailWag, 4, 4, '#c49040');
+    // Legs with walk animation
+    rect(x + 1 + walkBob, y + 9, 4, 4, '#b08030');
+    rect(x + 11 - walkBob, y + 9, 4, 4, '#b08030');
   }
+
+  ctx.restore();
 }
 
 // ─── DRAW AGENT ───
