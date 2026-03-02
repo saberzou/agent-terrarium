@@ -1083,45 +1083,66 @@ const AudioEngine = (() => {
     osc.type = 'square';
     osc.frequency.value = freq;
     g.gain.setValueAtTime(0, time);
-    g.gain.linearRampToValueAtTime(vol, time + 0.01);
-    g.gain.setValueAtTime(vol, time + dur - 0.02);
+    g.gain.linearRampToValueAtTime(vol, time + 0.02);
+    g.gain.setValueAtTime(vol, time + dur - 0.04);
     g.gain.linearRampToValueAtTime(0, time + dur);
     osc.connect(g);
     g.connect(master);
     osc.start(time);
-    osc.stop(time + dur);
+    osc.stop(time + dur + 0.05);
   }
 
-  function playArp(baseNote, time) {
-    // Classic 8-bit arpeggio: root, 3rd, 5th, octave
-    const intervals = [0, 4, 7, 12, 7, 4];
-    const speed = 0.08;
-    const freq = 440 * Math.pow(2, (baseNote - 69) / 12);
-    intervals.forEach((interval, i) => {
-      playSquare(freq * Math.pow(2, interval / 12), time + i * speed, 0.12, 0.08);
-    });
+  function playTone(freq, time, dur, vol, type = 'square') {
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0, time);
+    g.gain.linearRampToValueAtTime(vol, time + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(g);
+    g.connect(master);
+    osc.start(time);
+    osc.stop(time + dur + 0.05);
   }
 
-  function playBass(note, time) {
-    const freq = 440 * Math.pow(2, (note - 69) / 12);
-    playSquare(freq / 2, time, 0.4, 0.12);
-    playSquare(freq / 2 * 1.005, time, 0.4, 0.06); // slight detune
-  }
-
-  // Simple melody loop
+  // Slower, more melodic loop
   let melodyInterval;
   let noteIndex = 0;
-  const melody = [48, 55, 60, 62, 60, 55, 53, 50]; // C minorish
-  const bassLine = [36, 36, 41, 41, 43, 43, 48, 48];
+  // Simple, pleasant melody in C minor pentatonic
+  const melody = [
+    { note: 48, dur: 0.5 }, // C
+    { note: 55, dur: 0.5 }, // G
+    { note: 60, dur: 0.5 }, // C octave
+    { note: 57, dur: 0.5 }, // A
+    { note: 55, dur: 0.5 }, // G
+    { note: 52, dur: 0.5 }, // E
+    { note: 48, dur: 1.0 }, // C
+    { note: 60, dur: 0.5 }, // C octave
+  ];
+  const bassLine = [36, 36, 48, 43, 43, 41, 36, 48];
+
+  function mtof(m) {
+    return 440 * Math.pow(2, (m - 69) / 12);
+  }
 
   function startMelody() {
     const loop = () => {
       if (!playing || !actx) return;
       const now = actx.currentTime;
-      playArp(melody[noteIndex], now);
-      playBass(bassLine[noteIndex], now);
+      const m = melody[noteIndex];
+      const bass = bassLine[noteIndex];
+
+      // Melody note (triangle wave, softer)
+      playTone(mtof(m.note), now, m.dur * 0.9, 0.06, 'triangle');
+      // Harmony (fifth above)
+      playTone(mtof(m.note + 7), now, m.dur * 0.7, 0.03, 'sine');
+      // Bass
+      playSquare(mtof(bass) / 2, now, m.dur, 0.08);
+
       noteIndex = (noteIndex + 1) % melody.length;
-      melodyInterval = setTimeout(loop, 400);
+      const nextDelay = melody[noteIndex].dur * 700; // slower: 700ms per beat
+      melodyInterval = setTimeout(loop, nextDelay);
     };
     loop();
   }
@@ -1135,11 +1156,11 @@ const AudioEngine = (() => {
     init();
     if (playing) {
       stopMelody();
-      master.gain.linearRampToValueAtTime(0, actx.currentTime + 0.2);
+      master.gain.linearRampToValueAtTime(0, actx.currentTime + 0.3);
       playing = false;
     } else {
       actx.resume();
-      master.gain.linearRampToValueAtTime(0.5, actx.currentTime + 0.2);
+      master.gain.linearRampToValueAtTime(0.4, actx.currentTime + 0.3);
       playing = true;
       startMelody();
     }
