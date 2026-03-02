@@ -905,6 +905,7 @@ async function fetchStatus() {
     const r = await fetch('status.json?t=' + Date.now());
     const d = await r.json();
     if (d.agents) {
+      liveData = true;
       for (const [k, info] of Object.entries(d.agents)) {
         if (!AGENTS[k]) continue;
         AGENTS[k].status = info.status || 'idle';
@@ -916,14 +917,16 @@ async function fetchStatus() {
     }
     updateCards();
   } catch (e) {
-    // Demo mode — rotate every 12s
+    // Fallback to demo mode
   }
 }
 
 // ─── DEMO CYCLE ───
 let demoTick = 0;
+let liveData = false;
 const DEMO_STATES = ['working', 'idle', 'exploring', 'error', 'sleeping'];
 function demoCycle() {
+  if (liveData) return; // Real data available, skip demo
   const keys = Object.keys(AGENTS);
   keys.forEach((k, i) => {
     AGENTS[k].status = DEMO_STATES[(demoTick + i) % DEMO_STATES.length];
