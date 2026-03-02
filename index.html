@@ -233,6 +233,7 @@
   </div>
 </div>
 <nav id="pill-bar">
+  <button class="pill-tab active" data-tab="terrarium">Terrarium</button>
   <button class="pill-tab" data-tab="intro">Intro</button>
   <button class="pill-tab" data-tab="tasks">Tasks</button>
 </nav>
@@ -811,12 +812,12 @@ function closePanel() {
   panel.classList.remove('open');
   overlay.classList.remove('open');
   panelOpen = false;
-  activeTab = null;
-  pillBar.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+  activeTab = 'terrarium';
+  pillBar.querySelectorAll('.pill-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'terrarium'));
 }
 
 function togglePanel(tab) {
-  if (panelOpen && activeTab === tab) {
+  if (tab === 'terrarium' || (panelOpen && activeTab === tab)) {
     closePanel();
     return;
   }
