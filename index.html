@@ -1109,18 +1109,18 @@ const AudioEngine = (() => {
   // Slower, more melodic loop
   let melodyInterval;
   let noteIndex = 0;
-  // Simple, pleasant melody in C minor pentatonic
+  // Brighter melody in G major pentatonic
   const melody = [
-    { note: 48, dur: 0.5 }, // C
-    { note: 55, dur: 0.5 }, // G
-    { note: 60, dur: 0.5 }, // C octave
-    { note: 57, dur: 0.5 }, // A
-    { note: 55, dur: 0.5 }, // G
-    { note: 52, dur: 0.5 }, // E
-    { note: 48, dur: 1.0 }, // C
-    { note: 60, dur: 0.5 }, // C octave
+    { note: 67, dur: 0.5 }, // G
+    { note: 72, dur: 0.5 }, // C
+    { note: 79, dur: 0.5 }, // G octave
+    { note: 76, dur: 0.5 }, // E
+    { note: 74, dur: 0.5 }, // D
+    { note: 72, dur: 0.5 }, // C
+    { note: 67, dur: 1.0 }, // G
+    { note: 79, dur: 0.5 }, // G octave
   ];
-  const bassLine = [36, 36, 48, 43, 43, 41, 36, 48];
+  const bassLine = [55, 55, 67, 62, 62, 60, 55, 67];
 
   function mtof(m) {
     return 440 * Math.pow(2, (m - 69) / 12);
@@ -1134,11 +1134,11 @@ const AudioEngine = (() => {
       const bass = bassLine[noteIndex];
 
       // Melody note (triangle wave, softer)
-      playTone(mtof(m.note), now, m.dur * 0.9, 0.06, 'triangle');
+      playTone(mtof(m.note), now, m.dur * 0.9, 0.1, 'triangle');
       // Harmony (fifth above)
-      playTone(mtof(m.note + 7), now, m.dur * 0.7, 0.03, 'sine');
+      playTone(mtof(m.note + 7), now, m.dur * 0.7, 0.05, 'sine');
       // Bass
-      playSquare(mtof(bass) / 2, now, m.dur, 0.08);
+      playSquare(mtof(bass) / 2, now, m.dur, 0.12);
 
       noteIndex = (noteIndex + 1) % melody.length;
       const nextDelay = melody[noteIndex].dur * 700; // slower: 700ms per beat
