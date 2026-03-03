@@ -1113,104 +1113,25 @@ pillBar.addEventListener('click', e => {
 });
 overlay.addEventListener('click', closePanel);
 
-// ─── 8-BIT CHIPTUNE AUDIO ENGINE ───
+// ─── AUDIO ENGINE (MP3) ───
 const AudioEngine = (() => {
-  let actx, master, playing = false;
+  let audio, playing = false;
 
   function init() {
-    if (actx) return;
-    actx = new (window.AudioContext || window.webkitAudioContext)();
-    master = actx.createGain();
-    master.gain.value = 0;
-    master.connect(actx.destination);
-  }
-
-  function playSquare(freq, time, dur, vol) {
-    const osc = actx.createOscillator();
-    const g = actx.createGain();
-    osc.type = 'square';
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(0, time);
-    g.gain.linearRampToValueAtTime(vol, time + 0.02);
-    g.gain.setValueAtTime(vol, time + dur - 0.04);
-    g.gain.linearRampToValueAtTime(0, time + dur);
-    osc.connect(g);
-    g.connect(master);
-    osc.start(time);
-    osc.stop(time + dur + 0.05);
-  }
-
-  function playTone(freq, time, dur, vol, type = 'square') {
-    const osc = actx.createOscillator();
-    const g = actx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(0, time);
-    g.gain.linearRampToValueAtTime(vol, time + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
-    osc.connect(g);
-    g.connect(master);
-    osc.start(time);
-    osc.stop(time + dur + 0.05);
-  }
-
-  // Slower, more melodic loop
-  let melodyInterval;
-  let noteIndex = 0;
-  // Brighter melody in G major pentatonic
-  const melody = [
-    { note: 67, dur: 0.5 }, // G
-    { note: 72, dur: 0.5 }, // C
-    { note: 79, dur: 0.5 }, // G octave
-    { note: 76, dur: 0.5 }, // E
-    { note: 74, dur: 0.5 }, // D
-    { note: 72, dur: 0.5 }, // C
-    { note: 67, dur: 1.0 }, // G
-    { note: 79, dur: 0.5 }, // G octave
-  ];
-  const bassLine = [55, 55, 67, 62, 62, 60, 55, 67];
-
-  function mtof(m) {
-    return 440 * Math.pow(2, (m - 69) / 12);
-  }
-
-  function startMelody() {
-    const loop = () => {
-      if (!playing || !actx) return;
-      const now = actx.currentTime;
-      const m = melody[noteIndex];
-      const bass = bassLine[noteIndex];
-
-      // Melody note (triangle wave, softer)
-      playTone(mtof(m.note), now, m.dur * 0.9, 0.1, 'triangle');
-      // Harmony (fifth above)
-      playTone(mtof(m.note + 7), now, m.dur * 0.7, 0.05, 'sine');
-      // Bass
-      playSquare(mtof(bass) / 2, now, m.dur, 0.12);
-
-      noteIndex = (noteIndex + 1) % melody.length;
-      const nextDelay = melody[noteIndex].dur * 700; // slower: 700ms per beat
-      melodyInterval = setTimeout(loop, nextDelay);
-    };
-    loop();
-  }
-
-  function stopMelody() {
-    clearTimeout(melodyInterval);
-    melodyInterval = null;
+    if (audio) return;
+    audio = new Audio('audio/bgm.mp3');
+    audio.loop = true;
+    audio.volume = 0.5;
   }
 
   function toggle() {
     init();
     if (playing) {
-      stopMelody();
-      master.gain.linearRampToValueAtTime(0, actx.currentTime + 0.3);
+      audio.pause();
       playing = false;
     } else {
-      actx.resume();
-      master.gain.linearRampToValueAtTime(0.4, actx.currentTime + 0.3);
+      audio.play();
       playing = true;
-      startMelody();
     }
     return playing;
   }
