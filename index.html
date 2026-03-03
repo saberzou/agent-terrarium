@@ -87,6 +87,8 @@
     .card.atticus .card-name { color: #C49B30; }
     .card.axel .card-name { color: #FF8C00; }
     .card.astra .card-name { color: #D4652A; }
+    .card.axiom { border-color: #5D6D7E; }
+    .card.axiom .card-name { color: #85929E; }
 
     /* ─── FLOATING PILL TAB BAR ─── */
     #pill-bar {
@@ -286,6 +288,11 @@
     <div class="card-status">idle</div>
     <div class="card-task"></div>
   </div>
+  <div class="card axiom" id="card-axiom">
+    <div class="card-head"><span class="card-name" style="font-size:28px">🦉</span><span class="card-name">Axiom</span></div>
+    <div class="card-status">idle</div>
+    <div class="card-task"></div>
+  </div>
 </div>
 
 <script>
@@ -383,6 +390,12 @@ const AGENTS = {
     x: 280, y: 180, tx: 280, ty: 180,
     bubble: null, bubbleAt: 0,
   },
+  axiom: {
+    name: 'Axiom', emoji: '🦉', status: 'idle', task: '',
+    body: '#5D6D7E', belly: '#EBF5FB', ear: '#34495E', eye: '#111',
+    x: 320, y: 180, tx: 320, ty: 180,
+    bubble: null, bubbleAt: 0,
+  },
 };
 
 const STATUS_ZONE = {
@@ -398,6 +411,7 @@ const SLOT_OFFSETS = {
   atticus: { x: 0, y: 0 },
   axel:    { x: 35, y: 8 },
   astra:   { x: 70, y: -4 },
+  axiom:   { x: 105, y: 4 },
 };
 
 function targetForAgent(key) {
@@ -432,6 +446,13 @@ const THOUGHTS = {
     error:    ["Stay calm.", "We'll fix it.", "Deep breath first.", "Isolate & solve."],
     exploring:["Learning.", "New perspective.", "Growing.", "Open mind."],
     sleeping: ["zzz", "peaceful..."],
+  },
+  axiom: {
+    working:  ["Reading the news...", "Analyzing trends.", "Cross-referencing sources.", "Interesting pattern."],
+    idle:     ["Contemplating...", "What if...", "The meaning of it all.", "Hmm..."],
+    error:    ["Contradiction found.", "That doesn't add up.", "Fact-checking...", "Bias detected."],
+    exploring:["Deep dive.", "Following the thread.", "New perspective.", "Wisdom in the noise."],
+    sleeping: ["dreaming...", "zzz"],
   },
 };
 
@@ -558,7 +579,7 @@ function drawScene() {
   ctx.fillStyle = PAL.gold;
   ctx.font = '8px "Pixelify Sans", monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('ATTICUS \u00d7 AXEL \u00d7 ASTRA', W / 2, H - 10);
+  ctx.fillText('ATTICUS \u00d7 AXEL \u00d7 ASTRA \u00d7 AXIOM', W / 2, H - 10);
   ctx.textAlign = 'left';
 }
 
@@ -796,6 +817,23 @@ function drawAgent(key) {
     rect(x + 18, y + 6 + tailBob, 4, 3, a.body);
   }
 
+  // Owl ear tufts (Axiom)
+  if (key === 'axiom') {
+    rect(x, y - 6, 3, 5, a.body);
+    rect(x + 9, y - 6, 3, 5, a.body);
+    // Owl eyes (big circles)
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x + 3, y + 1, 4, 0, Math.PI * 2);
+    ctx.arc(x + 9, y + 1, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(x + 3, y + 1, 2, 0, Math.PI * 2);
+    ctx.arc(x + 9, y + 1, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   // Status dot
   const dotColors = { working: '#4caf50', idle: '#ffc107', exploring: '#2196f3', error: '#f44336', sleeping: '#9c27b0' };
   ctx.fillStyle = dotColors[a.status] || '#888';
@@ -927,6 +965,16 @@ const ACTIVITIES = {
     { status: 'working', task: 'Tracking habits', dur: [5,10], thoughts: ['Logging streak.', '7 days strong.', 'Consistency wins.'] },
     { status: 'exploring', task: 'Researching recipes', dur: [5,8], thoughts: ['Protein-rich.', 'Looks delicious.', 'Meal prep idea.'] },
   ],
+  axiom: [
+    { status: 'working', task: 'Reading tech news', dur: [12,20], thoughts: ['Interesting trend.', 'AI is advancing fast.', 'Market shifting.', 'Breaking news.'] },
+    { status: 'exploring', task: 'Philosophical deep dive', dur: [15,25], thoughts: ['What does it mean?', 'The nature of...', 'Deep thought.', 'Contemplating.'] },
+    { status: 'working', task: 'Writing essay', dur: [10,18], thoughts: ['Framing the argument.', 'Citations needed.', 'Strong conclusion.', 'Editing...'] },
+    { status: 'idle', task: '', dur: [8,14], thoughts: ['Staring into the void.', 'The big questions.', 'Quiet reflection.', 'Hmmm...'] },
+    { status: 'exploring', task: 'Curating reading list', dur: [6,12], thoughts: ['Must read.', 'This is deep.', 'Saving for later.', 'Knowledge is power.'] },
+    { status: 'working', task: 'Fact-checking article', dur: [8,14], thoughts: ['Source verification.', 'Cross-referencing.', 'Data check.', 'Veracity matters.'] },
+    { status: 'idle', task: '', dur: [5,10], thoughts: ['Contemplating silence.', 'The void stares back.', 'Dreaming awake.'] },
+    { status: 'working', task: 'Daily briefing', dur: [6,10], thoughts: ['Key takeaways.', 'Trends to watch.', 'Summary ready.'] },
+  ],
 };
 
 // Each agent tracks their own activity index and timer
@@ -934,6 +982,7 @@ const SIM = {
   atticus: { idx: 0, nextAt: 0, customThoughts: null },
   axel:    { idx: 2, nextAt: 0, customThoughts: null },
   astra:   { idx: 4, nextAt: 0, customThoughts: null },
+  axiom:   { idx: 1, nextAt: 0, customThoughts: null },
 };
 
 function advanceAgent(key) {
