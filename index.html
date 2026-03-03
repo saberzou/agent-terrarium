@@ -87,8 +87,8 @@
     .card.atticus .card-name { color: #C49B30; }
     .card.axel .card-name { color: #FF8C00; }
     .card.astra .card-name { color: #D4652A; }
-    .card.axiom { border-color: #5D6D7E; }
-    .card.axiom .card-name { color: #85929E; }
+    .card.axiom { border-color: #E88A00; }
+    .card.axiom .card-name { color: #FF8C00; }
 
     /* ─── FLOATING PILL TAB BAR ─── */
     #pill-bar {
@@ -254,7 +254,7 @@
   <div id="panel-intro">
     <h3>Welcome to the Terrarium</h3>
     <p>This is where Atticus, Axel, and Astra live and work — three AI agents, each with their own personality, built by Saber.</p>
-    <p style="margin-top:10px;color:#666;font-size:12px;">🐻 Atticus — the bear. Analytical, warm, gets things done.<br>🐯 Axel — the tiger. Creative, playful, chaotic good.<br>🦝 Astra — the red panda. Life coach, supportive, kind.</p>
+    <p style="margin-top:10px;color:#666;font-size:12px;">🐻 Atticus — the bear. Analytical, warm, gets things done.<br>🐯 Axel — the tiger. Creative, playful, chaotic good.<br>🦝 Astra — the red panda. Life coach, supportive, kind.<br>🦊 Axiom — the fox (thinks he's an owl). Philosophical, reads the news, contemplates the void.</p>
   </div>
   <div id="panel-tasks" style="display:none">
     <h3>Activity Feed</h3>
@@ -289,7 +289,7 @@
     <div class="card-task"></div>
   </div>
   <div class="card axiom" id="card-axiom">
-    <div class="card-head"><span class="card-name" style="font-size:28px">🦉</span><span class="card-name">Axiom</span></div>
+    <div class="card-head"><span class="card-name" style="font-size:28px">🦊</span><span class="card-name">Axiom</span></div>
     <div class="card-status">idle</div>
     <div class="card-task"></div>
   </div>
@@ -391,8 +391,8 @@ const AGENTS = {
     bubble: null, bubbleAt: 0,
   },
   axiom: {
-    name: 'Axiom', emoji: '🦉', status: 'idle', task: '',
-    body: '#5D6D7E', belly: '#EBF5FB', ear: '#34495E', eye: '#111',
+    name: 'Axiom', emoji: '🦊', status: 'idle', task: '',
+    body: '#E88A00', belly: '#fff3e0', ear: '#C46A00', eye: '#111', stripe: '#222',
     x: 320, y: 180, tx: 320, ty: 180,
     bubble: null, bubbleAt: 0,
   },
@@ -817,21 +817,15 @@ function drawAgent(key) {
     rect(x + 18, y + 6 + tailBob, 4, 3, a.body);
   }
 
-  // Owl ear tufts (Axiom)
+  // Owl ear tufts (Axiom - but he's a fox who thinks he's an owl)
+  // Use fox/tiger stripes instead
   if (key === 'axiom') {
-    rect(x, y - 6, 3, 5, a.body);
-    rect(x + 9, y - 6, 3, 5, a.body);
-    // Owl eyes (big circles)
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(x + 3, y + 1, 4, 0, Math.PI * 2);
-    ctx.arc(x + 9, y + 1, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#111';
-    ctx.beginPath();
-    ctx.arc(x + 3, y + 1, 2, 0, Math.PI * 2);
-    ctx.arc(x + 9, y + 1, 2, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillStyle = a.stripe || '#222';
+    ctx.globalAlpha = 0.4;
+    ctx.fillRect(x + 1, y + 2, 2, 6);
+    ctx.fillRect(x + 9, y + 2, 2, 6);
+    ctx.fillRect(x + 5, y, 2, 4);
+    ctx.globalAlpha = 1;
   }
 
   // Status dot
