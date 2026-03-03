@@ -392,7 +392,7 @@ const AGENTS = {
   },
   axiom: {
     name: 'Axiom', emoji: '🦊', status: 'idle', task: '',
-    body: '#E88A00', belly: '#fff3e0', ear: '#C46A00', eye: '#111', stripe: '#222',
+    body: '#D2691E', belly: '#FFEFD5', ear: '#A0522D', eye: '#111',
     x: 320, y: 180, tx: 320, ty: 180,
     bubble: null, bubbleAt: 0,
   },
@@ -786,8 +786,16 @@ function drawAgent(key) {
     ctx.fillRect(x + 7, y + 1, 1, 1);
   }
 
-  // Tiger stripes
-  if (a.stripe) {
+  // Atticus: round bear nose
+  if (key === 'atticus') {
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.arc(x + 6, y + 5, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Tiger stripes (Axel only)
+  if (key === 'axel' && a.stripe) {
     ctx.fillStyle = a.stripe;
     ctx.globalAlpha = 0.35;
     ctx.fillRect(x + 1, y + 2, 2, 6);
@@ -817,15 +825,12 @@ function drawAgent(key) {
     rect(x + 18, y + 6 + tailBob, 4, 3, a.body);
   }
 
-  // Owl ear tufts (Axiom - but he's a fox who thinks he's an owl)
-  // Use fox/tiger stripes instead
+  // Axiom: fox tail with white tip
   if (key === 'axiom') {
-    ctx.fillStyle = a.stripe || '#222';
-    ctx.globalAlpha = 0.4;
-    ctx.fillRect(x + 1, y + 2, 2, 6);
-    ctx.fillRect(x + 9, y + 2, 2, 6);
-    ctx.fillRect(x + 5, y, 2, 4);
-    ctx.globalAlpha = 1;
+    const tailBob = Math.sin(Date.now() / 600) * 1.5;
+    rect(x + 12, y + 7 + tailBob, 5, 3, a.body);
+    rect(x + 16, y + 5 + tailBob, 4, 3, a.body);
+    rect(x + 19, y + 4 + tailBob, 3, 3, '#fff'); // white tip
   }
 
   // Status dot
