@@ -377,24 +377,24 @@ function updateZones() {
 const PAL = {
   bg:          '#080808',
   floor:       '#111',
-  floorLine:   '#181818',
-  floorDot:    '#151515',
-  wall:        '#1a1a1a',
-  wallTop:     '#222',
-  deskBody:    '#161616',
-  deskSurface: '#1e1e1e',
-  monitor:     '#060606',
+  floorLine:   '#1e1e1e',
+  floorDot:    '#1a1a1a',
+  wall:        '#1e1e1e',
+  wallTop:     '#333',
+  deskBody:    '#2a2a2a',
+  deskSurface: '#3a3a3a',
+  monitor:     '#0a0a0a',
   monGlow:     '#33ff66',  // green phosphor — terminal feel
-  couch:       '#131313',
-  couchBack:   '#1a1a1a',
-  couchArm:    '#202020',
-  serverRack:  '#141414',
-  serverFrame: '#0d0d0d',
-  plant:       '#1a1a1a',
-  plantLeaf:   '#222',
-  white:       '#cccccc',
-  dim:         '#333',
-  vdim:        '#222',
+  couch:       '#282828',
+  couchBack:   '#303030',
+  couchArm:    '#353535',
+  serverRack:  '#2a2a2a',
+  serverFrame: '#1a1a1a',
+  plant:       '#333',
+  plantLeaf:   '#555',
+  white:       '#ddd',
+  dim:         '#444',
+  vdim:        '#333',
 };
 
 // ─── AREAS ───
@@ -614,10 +614,10 @@ function drawScene() {
   const chairGap = isMobile ? 22 : 20;
   for (let i = 0; i < 4; i++) {
     const cx = chairStartX + i * chairGap;
-    rect(cx, chairStartY + 4, 14, 10, '#181818');
-    rect(cx + 1, chairStartY, 12, 6, '#141414');
-    rect(cx, chairStartY + 14, 3, 4, '#111');
-    rect(cx + 11, chairStartY + 14, 3, 4, '#111');
+    rect(cx, chairStartY + 4, 14, 10, '#3a3a3a');
+    rect(cx + 1, chairStartY, 12, 6, '#2e2e2e');
+    rect(cx, chairStartY + 14, 3, 4, '#222');
+    rect(cx + 11, chairStartY + 14, 3, 4, '#222');
   }
 
   // ─── SERVER ROOM ───
@@ -660,11 +660,11 @@ function drawScene() {
   drawCat();
 
   // Title plaque — pixel style, monochrome
-  rect(W / 2 - 88, H - 22, 176, 16, '#111');
-  ctx.fillStyle = '#2a2a2a';
+  rect(W / 2 - 88, H - 22, 176, 16, '#1a1a1a');
+  ctx.fillStyle = '#3a3a3a';
   ctx.fillRect(W / 2 - 88, H - 22, 176, 1);
   ctx.fillRect(W / 2 - 88, H - 7, 176, 1);
-  ctx.fillStyle = '#444';
+  ctx.fillStyle = '#888';
   ctx.font = '7px "Pixelify Sans", monospace';
   ctx.textAlign = 'center';
   ctx.fillText('ATTICUS \u00d7 AXEL \u00d7 ASTRA \u00d7 AXIOM', W / 2, H - 10);
@@ -672,24 +672,24 @@ function drawScene() {
 }
 
 function drawPlant(x, y) {
-  // Pot — dark gray pixel pot
-  rect(x + 2, y + 12, 10, 12, '#141414');
-  rect(x, y + 11, 14, 3, '#1a1a1a');
+  // Pot — pixel pot
+  rect(x + 2, y + 12, 10, 12, '#3a3a3a');
+  rect(x, y + 11, 14, 3, '#444');
   // Soil
-  rect(x + 3, y + 10, 8, 3, '#111');
-  // Stems + leaves — grayscale pixel art
-  rect(x + 5, y + 2, 2, 10, '#1e1e1e');
-  rect(x + 2, y + 4, 5, 4, '#222');
-  rect(x + 7, y, 5, 5, '#1d1d1d');
-  rect(x + 3, y, 3, 3, '#252525');
+  rect(x + 3, y + 10, 8, 3, '#2a2a2a');
+  // Stems + leaves — brighter grayscale pixel art
+  rect(x + 5, y + 2, 2, 10, '#4a4a4a');
+  rect(x + 2, y + 4, 5, 4, '#5a5a5a');
+  rect(x + 7, y, 5, 5, '#505050');
+  rect(x + 3, y, 3, 3, '#666');
 }
 
 function drawClock(cx, cy) {
   // Pixel clock on wall — monochrome
-  rect(cx - 11, cy - 11, 22, 22, '#141414');
-  rect(cx - 9, cy - 9, 18, 18, '#0e0e0e');
+  rect(cx - 11, cy - 11, 22, 22, '#333');
+  rect(cx - 9, cy - 9, 18, 18, '#1a1a1a');
   // Clock border pixels
-  ctx.fillStyle = '#252525';
+  ctx.fillStyle = '#666';
   for (let a = 0; a < 12; a++) {
     const angle = (a / 12) * Math.PI * 2 - Math.PI / 2;
     ctx.fillRect(cx + Math.round(Math.cos(angle) * 8), cy + Math.round(Math.sin(angle) * 8), 1, 1);
@@ -697,7 +697,7 @@ function drawClock(cx, cy) {
   // Hands
   const now = new Date();
   const h = now.getHours(), m = now.getMinutes();
-  ctx.strokeStyle = '#555';
+  ctx.strokeStyle = '#999';
   ctx.lineWidth = 1;
   // Hour hand
   ctx.beginPath();
@@ -705,13 +705,13 @@ function drawClock(cx, cy) {
   ctx.lineTo(cx + Math.sin((h % 12 + m / 60) * Math.PI / 6) * 5, cy - Math.cos((h % 12 + m / 60) * Math.PI / 6) * 5);
   ctx.stroke();
   // Minute hand
-  ctx.strokeStyle = '#777';
+  ctx.strokeStyle = '#bbb';
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(cx + Math.sin(m * Math.PI / 30) * 7, cy - Math.cos(m * Math.PI / 30) * 7);
   ctx.stroke();
   // Center dot
-  ctx.fillStyle = '#666';
+  ctx.fillStyle = '#aaa';
   ctx.fillRect(cx - 1, cy - 1, 2, 2);
 }
 
@@ -769,8 +769,8 @@ function drawCat() {
   const fl = CAT.facingLeft;
   const walkBob = isMoving ? Math.sin(Date.now() / 100) * 1 : 0;
   // Monochrome cat colors
-  const catBody = '#888';
-  const catDark = '#555';
+  const catBody = '#aaa';
+  const catDark = '#777';
 
   ctx.save();
   if (fl) {
