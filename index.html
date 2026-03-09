@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agent Terrarium</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #111;
-      color: #e8e8e8;
-      font-family: 'DM Sans', sans-serif;
+      background: #0a0a0a;
+      color: #c8c8c8;
+      font-family: 'DM Mono', 'Courier New', monospace;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -18,15 +18,44 @@
       overflow-x: hidden;
     }
 
+    /* ─── CRT CANVAS WRAP ─── */
     #canvas-wrap {
       width: 100%;
       max-width: 800px;
       margin-top: 24px;
       position: relative;
-      border-radius: 12px;
+      border-radius: 4px;
       overflow: hidden;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      border: 1px solid #2a2a2a;
+      box-shadow:
+        0 0 0 1px #111,
+        0 0 40px rgba(255,255,255,0.03),
+        0 8px 60px rgba(0,0,0,0.8);
       cursor: default;
+    }
+    /* CRT scanlines */
+    #canvas-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.12) 2px,
+        rgba(0,0,0,0.12) 4px
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+    /* CRT vignette */
+    #canvas-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+      pointer-events: none;
+      z-index: 3;
     }
     canvas {
       display: block;
@@ -35,60 +64,76 @@
       image-rendering: crisp-edges;
     }
 
+    /* ─── AGENT CARDS ─── */
     #cards {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
       width: 100%;
       max-width: 800px;
-      margin: 20px auto 40px;
+      margin: 16px auto 40px;
       padding: 0 12px;
     }
     .card {
-      background: #1a1a1a;
-      border-radius: 10px;
-      padding: 16px;
+      background: #0e0e0e;
+      border-radius: 2px;
+      padding: 14px;
       border: 1px solid #2a2a2a;
       transition: border-color .3s;
+      position: relative;
     }
+    /* pixel corner marks */
+    .card::before, .card::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #333;
+    }
+    .card::before { top: -1px; right: -1px; }
+    .card::after  { bottom: -1px; left: -1px; }
     .card-head {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
-    .card-emoji { font-size: 28px; display: none; }
     .card-avatar {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
+      filter: grayscale(0%); /* avatars keep color */
+      border: 1px solid #222;
     }
     .card-name {
-      font-family: 'Pixelify Sans', sans-serif;
-      font-size: 18px;
+      font-family: 'Pixelify Sans', monospace;
+      font-size: 15px;
       font-weight: 600;
     }
     .card-status {
-      font-size: 13px;
-      color: #888;
-      text-transform: capitalize;
+      font-size: 10px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
     .card-task {
-      font-size: 12px;
-      color: #555;
-      margin-top: 4px;
-      min-height: 16px;
+      font-size: 10px;
+      color: #3a3a3a;
+      margin-top: 3px;
+      min-height: 14px;
     }
-    .card.atticus { border-color: #8B6914; }
-    .card.axel { border-color: #FF8C00; }
-    .card.astra { border-color: #B7410E; }
+    /* Agent card accent borders — subtle color only on left edge */
+    .card.atticus { border-left: 2px solid #5a430e; }
+    .card.axel    { border-left: 2px solid #7a4400; }
+    .card.astra   { border-left: 2px solid #6b2508; }
+    .card.axiom   { border-left: 2px solid #7a4a10; }
+    /* Name colors — only colorful element in the card */
     .card.atticus .card-name { color: #C49B30; }
-    .card.axel .card-name { color: #FF8C00; }
-    .card.astra .card-name { color: #D4652A; }
-    .card.axiom { border-color: #E88A00; }
-    .card.axiom .card-name { color: #FF8C00; }
+    .card.axel    .card-name { color: #FF8C00; }
+    .card.astra   .card-name { color: #D4652A; }
+    .card.axiom   .card-name { color: #E0780A; }
 
     /* ─── FLOATING PILL TAB BAR ─── */
     #pill-bar {
@@ -97,47 +142,50 @@
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 4px;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 999px;
-      padding: 4px;
+      gap: 2px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 3px;
+      padding: 3px;
       z-index: 100;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 0 0 1px #111, 0 4px 24px rgba(0,0,0,0.7);
     }
     .pill-tab {
-      font-family: 'Pixelify Sans', sans-serif;
-      font-size: 13px;
-      padding: 8px 20px;
-      border-radius: 999px;
+      font-family: 'Pixelify Sans', monospace;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      padding: 7px 18px;
+      border-radius: 2px;
       border: none;
       background: transparent;
-      color: #888;
+      color: #484848;
       cursor: pointer;
-      transition: all .25s ease;
+      transition: all .2s ease;
       -webkit-tap-highlight-color: transparent;
+      text-transform: uppercase;
     }
     .pill-tab.active {
-      background: #2a2a2a;
-      color: #e8e8e8;
+      background: #1a1a1a;
+      color: #d0d0d0;
+      box-shadow: inset 0 0 0 1px #333;
     }
     .pill-tab:hover:not(.active) {
-      color: #bbb;
+      color: #888;
     }
     #audio-toggle {
-      border-left: 1px solid #333;
+      border-left: 1px solid #222;
       margin-left: 2px;
-      padding: 8px 14px;
-      font-size: 14px;
+      padding: 7px 12px;
+      font-size: 13px;
       font-family: inherit;
     }
     #audio-toggle:hover { opacity: 0.8; }
 
-    /* ─── PANEL ─── */
+    /* ─── SLIDE PANEL ─── */
     #panel-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       z-index: 90;
       opacity: 0;
       pointer-events: none;
@@ -153,9 +201,9 @@
       left: 0;
       right: 0;
       max-height: 55vh;
-      background: #1a1a1a;
-      border-top: 1px solid #333;
-      border-radius: 16px 16px 0 0;
+      background: #0e0e0e;
+      border-top: 1px solid #2a2a2a;
+      border-radius: 0;
       z-index: 95;
       transform: translateY(100%);
       transition: transform .35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -166,15 +214,19 @@
       transform: translateY(0);
     }
     #panel h3 {
-      font-family: 'Pixelify Sans', sans-serif;
-      font-size: 16px;
-      color: #C4A040;
+      font-family: 'Pixelify Sans', monospace;
+      font-size: 13px;
+      color: #888;
       margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 8px;
     }
     #panel p, #panel li {
-      font-size: 13px;
-      color: #aaa;
-      line-height: 1.6;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.7;
     }
     #panel ul {
       list-style: none;
@@ -182,42 +234,23 @@
     }
     #panel li {
       padding: 10px 0;
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid #161616;
     }
-    #panel li:last-child {
-      border-bottom: none;
-    }
+    #panel li:last-child { border-bottom: none; }
     .task-agent {
-      font-family: 'Pixelify Sans', sans-serif;
-      font-size: 13px;
+      font-family: 'Pixelify Sans', monospace;
+      font-size: 12px;
       margin-bottom: 2px;
     }
     .task-agent.atticus { color: #C49B30; }
-    .task-agent.axel { color: #FF8C00; }
-    .task-agent.astra { color: #D4652A; }
+    .task-agent.axel    { color: #FF8C00; }
+    .task-agent.astra   { color: #D4652A; }
+    .task-agent.axiom   { color: #E0780A; }
     .task-status {
-      font-size: 11px;
-      color: #666;
-      text-transform: capitalize;
-    }
-    .project-link {
-      display: block;
-      text-decoration: none;
-      padding: 2px 0;
-      transition: opacity .2s;
-    }
-    .project-link:hover { opacity: 0.7; }
-    .project-name {
-      font-family: 'Pixelify Sans', sans-serif;
-      font-size: 14px;
-      color: #C4A040;
-      display: block;
-      margin-bottom: 2px;
-    }
-    .project-desc {
-      font-size: 12px;
-      color: #666;
-      display: block;
+      font-size: 10px;
+      color: #3a3a3a;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
     @media (max-width: 600px) {
@@ -225,42 +258,44 @@
       #canvas-wrap {
         margin-top: 0;
         border-radius: 0;
-        box-shadow: none;
+        border-left: none;
+        border-right: none;
         max-width: 100%;
       }
       #cards {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        padding: 0 16px;
-        margin: 16px auto 32px;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 0 12px;
+        margin: 12px auto 32px;
       }
-      .card {
-        padding: 14px 16px;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-      }
-      .card-head { margin-bottom: 0; }
-      .card-avatar { width: 42px; height: 42px; }
-      .card-info { flex: 1; }
+      .card { padding: 12px; }
+      .card-avatar { width: 34px; height: 34px; }
+      .card-name { font-size: 13px; }
     }
   </style>
 </head>
 <body>
 
-<!-- Pill Tab Bar -->
+<!-- Panel overlay -->
 <div id="panel-overlay"></div>
 <div id="panel">
   <div id="panel-intro">
-    <h3>Welcome to the Terrarium</h3>
-    <p>This is where Atticus, Axel, and Astra live and work — three AI agents, each with their own personality, built by Saber.</p>
-    <p style="margin-top:10px;color:#666;font-size:12px;">🐻 Atticus — the bear. Analytical, warm, gets things done.<br>🐯 Axel — the tiger. Creative, playful, chaotic good.<br>🦝 Astra — the red panda. Life coach, supportive, kind.<br>🦊 Axiom — the fox (thinks he's an owl). Philosophical, reads the news, contemplates the void.</p>
+    <h3>// Agent Terrarium</h3>
+    <p>This is where Atticus, Axel, Astra, and Axiom live and work — four AI agents, each with their own personality, built by Saber.</p>
+    <p style="margin-top:10px;color:#444;font-size:11px;">
+      🐻 Atticus — the bear. Analytical, warm, gets things done.<br>
+      🐯 Axel — the tiger. Creative, playful, chaotic good.<br>
+      🦝 Astra — the red panda. Life coach, supportive, kind.<br>
+      🦊 Axiom — the fox (thinks he's an owl). Philosophical, reads the news, contemplates the void.
+    </p>
   </div>
   <div id="panel-tasks" style="display:none">
-    <h3>Activity Feed</h3>
+    <h3>// Activity Feed</h3>
     <ul id="task-list"></ul>
   </div>
 </div>
+
+<!-- Pill Tab Bar -->
 <nav id="pill-bar">
   <button class="pill-tab active" data-tab="terrarium">Terrarium</button>
   <button class="pill-tab" data-tab="intro">Intro</button>
@@ -313,7 +348,6 @@ function resizeCanvas() {
   canvas.height = H;
   ctx.imageSmoothingEnabled = false;
   updateZones();
-  // Keep cat on screen
   if (isMobile) {
     CAT.x = Math.min(CAT.x, W - 30);
     CAT.y = Math.min(CAT.y, H - 30);
@@ -324,7 +358,6 @@ function resizeCanvas() {
 
 function updateZones() {
   if (isMobile) {
-    // Vertical stack: desk top, lounge middle, server bottom
     ZONES.desk   = { x: 20,  y: 20,  w: 280, h: 90,  label: 'WORK' };
     ZONES.lounge = { x: 20,  y: 120, w: 280, h: 90,  label: 'LOUNGE' };
     ZONES.server = { x: 20,  y: 220, w: 280, h: 90,  label: 'DEBUG' };
@@ -333,7 +366,6 @@ function updateZones() {
     ZONES.lounge = { x: 180, y: 100, w: 120, h: 110, label: 'LOUNGE' };
     ZONES.server = { x: 320, y: 100, w: 130, h: 110, label: 'DEBUG' };
   }
-  // Update all agent targets
   for (const k of Object.keys(AGENTS)) {
     const t = targetForAgent(k);
     AGENTS[k].tx = t.x;
@@ -341,25 +373,28 @@ function updateZones() {
   }
 }
 
-// ─── PALETTE ───
+// ─── MONOCHROME PALETTE ───
 const PAL = {
-  bg: '#16161a',
-  floor: '#2b2520',
-  floorLine: '#3a3530',
-  wall: '#3e352e',
-  wallTop: '#524840',
-  deskWood: '#5d4037',
-  deskTop: '#6d4c41',
-  monitor: '#0a0a0f',
-  monGlow: '#4fc3f7',
-  couch: '#5d4037',
-  couchSeat: '#6d4c41',
-  serverRack: '#37474f',
-  serverFrame: '#263238',
-  plant: '#2e7d32',
-  plantLight: '#66bb6a',
-  gold: '#c4a040',
-  textDim: '#666',
+  bg:          '#080808',
+  floor:       '#111',
+  floorLine:   '#181818',
+  floorDot:    '#151515',
+  wall:        '#1a1a1a',
+  wallTop:     '#222',
+  deskBody:    '#161616',
+  deskSurface: '#1e1e1e',
+  monitor:     '#060606',
+  monGlow:     '#33ff66',  // green phosphor — terminal feel
+  couch:       '#131313',
+  couchBack:   '#1a1a1a',
+  couchArm:    '#202020',
+  serverRack:  '#141414',
+  serverFrame: '#0d0d0d',
+  plant:       '#1a1a1a',
+  plantLeaf:   '#222',
+  white:       '#cccccc',
+  dim:         '#333',
+  vdim:        '#222',
 };
 
 // ─── AREAS ───
@@ -369,11 +404,10 @@ const ZONES = {
   server:  { x: 320, y: 100, w: 130, h: 110, label: 'DEBUG' },
 };
 
-// ─── AGENTS ───
+// ─── AGENTS (keep their colors — they're the only color in the world) ───
 const AGENTS = {
   atticus: {
     name: 'Atticus', emoji: '🐻', status: 'idle', task: '',
-    // body colors
     body: '#8B6914', belly: '#D2B48C', ear: '#6B4F10', eye: '#111',
     x: 240, y: 180, tx: 240, ty: 180,
     bubble: null, bubbleAt: 0,
@@ -406,12 +440,11 @@ const STATUS_ZONE = {
   sleeping:  'lounge',
 };
 
-// Agent slot offsets within zones so they don't overlap
 const SLOT_OFFSETS = {
-  atticus: { x: 0, y: 0 },
-  axel:    { x: 35, y: 8 },
-  astra:   { x: 70, y: -4 },
-  axiom:   { x: 105, y: 4 },
+  atticus: { x: 0,   y: 0  },
+  axel:    { x: 35,  y: 8  },
+  astra:   { x: 70,  y: -4 },
+  axiom:   { x: 105, y: 4  },
 };
 
 function targetForAgent(key) {
@@ -427,32 +460,32 @@ function targetForAgent(key) {
 // ─── THOUGHTS ───
 const THOUGHTS = {
   atticus: {
-    working:  ["Refactoring...", "One more test.", "Almost there.", "Shipping soon."],
-    idle:     ["Thinking.", "Hmm.", "Coffee time?", "Reading docs."],
-    error:    ["Found it.", "Tracing...", "Stack trace says...", "Isolating."],
-    exploring:["Interesting.", "Let me dig.", "Curious.", "What if..."],
-    sleeping: ["zzz", "..."],
+    working:   ["Refactoring...", "One more test.", "Almost there.", "Shipping soon."],
+    idle:      ["Thinking.", "Hmm.", "Coffee time?", "Reading docs."],
+    error:     ["Found it.", "Tracing...", "Stack trace says...", "Isolating."],
+    exploring: ["Interesting.", "Let me dig.", "Curious.", "What if..."],
+    sleeping:  ["zzz", "..."],
   },
   axel: {
-    working:  ["Ship it! 🚀", "Wild idea incoming.", "Trust the process.", "Painting pixels."],
-    idle:     ["Bored.", "Let's vibe.", "What's next?", "Nap time?"],
-    error:    ["Oops.", "My bad?", "Creative debugging!", "Ctrl+Z."],
-    exploring:["Ooh shiny!", "New canvas!", "What's over here?", "Adventure!"],
-    sleeping: ["zzz", "purrrr"],
+    working:   ["Ship it! 🚀", "Wild idea incoming.", "Trust the process.", "Painting pixels."],
+    idle:      ["Bored.", "Let's vibe.", "What's next?", "Nap time?"],
+    error:     ["Oops.", "My bad?", "Creative debugging!", "Ctrl+Z."],
+    exploring: ["Ooh shiny!", "New canvas!", "What's over here?", "Adventure!"],
+    sleeping:  ["zzz", "purrrr"],
   },
   astra: {
-    working:  ["Stay focused.", "Good pace.", "You got this.", "One step at a time."],
-    idle:     ["Stretch break!", "Breathe.", "Hydrate! 💧", "Rest is work too."],
-    error:    ["Stay calm.", "We'll fix it.", "Deep breath first.", "Isolate & solve."],
-    exploring:["Learning.", "New perspective.", "Growing.", "Open mind."],
-    sleeping: ["zzz", "peaceful..."],
+    working:   ["Stay focused.", "Good pace.", "You got this.", "One step at a time."],
+    idle:      ["Stretch break!", "Breathe.", "Hydrate! 💧", "Rest is work too."],
+    error:     ["Stay calm.", "We'll fix it.", "Deep breath first.", "Isolate & solve."],
+    exploring: ["Learning.", "New perspective.", "Growing.", "Open mind."],
+    sleeping:  ["zzz", "peaceful..."],
   },
   axiom: {
-    working:  ["Reading the news...", "Analyzing trends.", "Cross-referencing sources.", "Interesting pattern."],
-    idle:     ["Contemplating...", "What if...", "The meaning of it all.", "Hmm..."],
-    error:    ["Contradiction found.", "That doesn't add up.", "Fact-checking...", "Bias detected."],
-    exploring:["Deep dive.", "Following the thread.", "New perspective.", "Wisdom in the noise."],
-    sleeping: ["dreaming...", "zzz"],
+    working:   ["Reading the news...", "Analyzing trends.", "Cross-referencing.", "Interesting pattern."],
+    idle:      ["Contemplating...", "What if...", "The meaning of it all.", "Hmm..."],
+    error:     ["Contradiction found.", "That doesn't add up.", "Fact-checking...", "Bias detected."],
+    exploring: ["Deep dive.", "Following the thread.", "New perspective.", "Wisdom in the noise."],
+    sleeping:  ["dreaming...", "zzz"],
   },
 };
 
@@ -463,38 +496,54 @@ function rect(x, y, w, h, c) {
 }
 
 function drawScene() {
-  // Sky / bg
+  // Pure black background
   rect(0, 0, W, H, PAL.bg);
 
   if (isMobile) {
-    // Mobile: full canvas is floor, zones stacked vertically
+    // Mobile: full canvas floor with pixel grid pattern
     rect(10, 10, W - 20, H - 20, PAL.floor);
-    ctx.fillStyle = PAL.floorLine;
-    for (let x = 16; x < W - 16; x += 20) {
-      ctx.fillRect(x, 14, 10, H - 28);
+    // Pixel dot dither on floor
+    ctx.fillStyle = PAL.floorDot;
+    for (let fx = 14; fx < W - 14; fx += 8) {
+      for (let fy = 14; fy < H - 14; fy += 8) {
+        ctx.fillRect(fx, fy, 1, 1);
+      }
     }
-
-    // Zone dividers
-    ctx.fillStyle = '#3a3530';
-    ctx.fillRect(14, ZONES.lounge.y - 6, W - 28, 2);
-    ctx.fillRect(14, ZONES.server.y - 6, W - 28, 2);
+    // Zone dividers — pixel-style dashed line
+    ctx.fillStyle = PAL.dim;
+    for (let dx = 14; dx < W - 14; dx += 5) {
+      ctx.fillRect(dx, ZONES.lounge.y - 6, 3, 1);
+      ctx.fillRect(dx, ZONES.server.y - 6, 3, 1);
+    }
   } else {
-    // Desktop: wall + floor
-    rect(20, 60, W - 40, 50, PAL.wall);
-    rect(20, 55, W - 40, 8, PAL.wallTop);
+    // Desktop: wall section (top) + floor (bottom)
+    rect(20, 55, W - 40, 55, PAL.wall);
+    rect(20, 52, W - 40, 6, PAL.wallTop);
+    // Pixel brick pattern on wall
+    ctx.fillStyle = '#151515';
+    for (let bx = 20; bx < W - 20; bx += 16) {
+      for (let by = 55; by < 110; by += 8) {
+        const offset = Math.floor((by - 55) / 8) % 2 === 0 ? 0 : 8;
+        ctx.fillRect(bx + offset, by + 7, 14, 1);
+      }
+    }
+    // Floor
     rect(20, 110, W - 40, 140, PAL.floor);
-    ctx.fillStyle = PAL.floorLine;
-    for (let x = 30; x < W - 30; x += 24) {
-      ctx.fillRect(x, 115, 12, 130);
+    // Pixel dot grid on floor
+    ctx.fillStyle = PAL.floorDot;
+    for (let fx = 24; fx < W - 24; fx += 8) {
+      for (let fy = 114; fy < 246; fy += 8) {
+        ctx.fillRect(fx, fy, 1, 1);
+      }
     }
   }
 
-  // Zone labels
-  ctx.fillStyle = '#333';
-  ctx.font = '7px "Pixelify Sans", monospace';
+  // Zone labels — terminal style
+  ctx.fillStyle = '#282828';
+  ctx.font = '6px "Pixelify Sans", monospace';
   ctx.textAlign = 'center';
   for (const [, z] of Object.entries(ZONES)) {
-    ctx.fillText(z.label, z.x + z.w / 2, z.y - 2);
+    ctx.fillText('[ ' + z.label + ' ]', z.x + z.w / 2, z.y - 2);
   }
   ctx.textAlign = 'left';
 
@@ -504,44 +553,71 @@ function drawScene() {
   const deskGap = isMobile ? 60 : 42;
   for (let i = 0; i < deskCount; i++) {
     const dx = dz.x + 10 + i * deskGap;
-    rect(dx, dz.y + 30, 34, 18, PAL.deskWood);
-    rect(dx, dz.y + 28, 34, 4, PAL.deskTop);
-    rect(dx + 8, dz.y + 16, 18, 14, PAL.monitor);
+    // Desk surface (flat monochrome)
+    rect(dx, dz.y + 30, 34, 18, PAL.deskBody);
+    rect(dx, dz.y + 28, 34, 4, PAL.deskSurface);
+    // Pixel border on desk top
+    ctx.fillStyle = '#1f1f1f';
+    ctx.fillRect(dx, dz.y + 28, 34, 1);
+    // Monitor frame
+    rect(dx + 8, dz.y + 16, 18, 14, '#0e0e0e');
+    // Monitor screen — green phosphor glow
+    rect(dx + 10, dz.y + 18, 14, 10, PAL.monitor);
     ctx.fillStyle = PAL.monGlow;
-    ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 800 + i) * 0.15;
+    ctx.globalAlpha = 0.18 + Math.sin(Date.now() / 800 + i) * 0.08;
     ctx.fillRect(dx + 10, dz.y + 18, 14, 10);
+    // Scan lines on monitor
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = '#000';
+    for (let sl = 0; sl < 5; sl++) {
+      ctx.fillRect(dx + 10, dz.y + 18 + sl * 2, 14, 1);
+    }
     ctx.globalAlpha = 1;
+    // Pixel text cursor blink on screen
+    if (Math.floor(Date.now() / 500 + i * 7) % 2 === 0) {
+      ctx.fillStyle = PAL.monGlow;
+      ctx.globalAlpha = 0.8;
+      ctx.fillRect(dx + 11, dz.y + 22, 2, 3);
+      ctx.globalAlpha = 1;
+    }
   }
 
   // ─── LOUNGE ───
   const lz = ZONES.lounge;
   const couchW = isMobile ? 120 : 90;
-  // Dark gray couch (near black for visibility)
-  rect(lz.x + 15, lz.y + 40, couchW, 20, '#111');
-  rect(lz.x + 15, lz.y + 34, couchW, 10, '#1a1a1a');
-  rect(lz.x + 20, lz.y + 36, 20, 8, '#222');
-  rect(lz.x + 15 + couchW - 25, lz.y + 36, 20, 8, '#222');
-  // Coffee table
-  rect(lz.x + 40 + (isMobile ? 20 : 0), lz.y + 65, 40, 14, PAL.deskWood);
-  rect(lz.x + 55 + (isMobile ? 20 : 0), lz.y + 61, 8, 8, '#ddd');
+  // Couch — flat dark gray
+  rect(lz.x + 15, lz.y + 40, couchW, 20, PAL.couch);
+  rect(lz.x + 15, lz.y + 34, couchW, 10, PAL.couchBack);
+  rect(lz.x + 15,            lz.y + 34, 6, 26, PAL.couchArm);
+  rect(lz.x + 15 + couchW - 6, lz.y + 34, 6, 26, PAL.couchArm);
+  // Pixel border on couch top
+  ctx.fillStyle = '#252525';
+  ctx.fillRect(lz.x + 15, lz.y + 34, couchW, 1);
+
+  // Coffee table — gray
+  const ctOff = isMobile ? 20 : 0;
+  rect(lz.x + 40 + ctOff, lz.y + 65, 40, 12, '#161616');
+  rect(lz.x + 40 + ctOff, lz.y + 65, 40, 2, '#1e1e1e');
+  // Cup on table
+  rect(lz.x + 55 + ctOff, lz.y + 60, 7, 7, '#1a1a1a');
+  rect(lz.x + 56 + ctOff, lz.y + 61, 5, 5, '#222');
+  // Steam — white pixel dots
   const st = Date.now() / 400;
-  ctx.fillStyle = '#fff';
-  ctx.globalAlpha = 0.3;
-  ctx.fillRect(lz.x + 57 + (isMobile ? 20 : 0) + Math.sin(st) * 2, lz.y + 53 - (st % 3) * 3, 4, 4);
+  ctx.fillStyle = '#444';
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(lz.x + 57 + ctOff + Math.round(Math.sin(st) * 1), lz.y + 53 - Math.round(st % 3) * 3, 2, 2);
   ctx.globalAlpha = 1;
-  // 4 red chairs
+
+  // Lounge chairs — monochrome (dark gray)
   const chairStartX = lz.x + (isMobile ? 150 : 15);
   const chairStartY = lz.y + (isMobile ? 40 : 78);
   const chairGap = isMobile ? 22 : 20;
   for (let i = 0; i < 4; i++) {
     const cx = chairStartX + i * chairGap;
-    // Seat
-    rect(cx, chairStartY + 4, 14, 10, '#C62828');
-    // Back
-    rect(cx + 1, chairStartY, 12, 6, '#8B1A1A');
-    // Legs
-    rect(cx, chairStartY + 14, 3, 4, '#5a1010');
-    rect(cx + 11, chairStartY + 14, 3, 4, '#5a1010');
+    rect(cx, chairStartY + 4, 14, 10, '#181818');
+    rect(cx + 1, chairStartY, 12, 6, '#141414');
+    rect(cx, chairStartY + 14, 3, 4, '#111');
+    rect(cx + 11, chairStartY + 14, 3, 4, '#111');
   }
 
   // ─── SERVER ROOM ───
@@ -553,13 +629,22 @@ function drawScene() {
     const rackH = isMobile ? 60 : 80;
     rect(sx, sz.y + 10, 30, rackH, PAL.serverRack);
     rect(sx + 2, sz.y + 12, 26, rackH - 4, PAL.serverFrame);
+    // Pixel screws on rack corners
+    ctx.fillStyle = '#1e1e1e';
+    ctx.fillRect(sx + 2, sz.y + 12, 2, 2);
+    ctx.fillRect(sx + 26, sz.y + 12, 2, 2);
+    // Rack LEDs — monochrome white with varying brightness
     for (let j = 0; j < 6; j++) {
-      const tick = Math.floor(Date.now() / 150 + i * 7 + j * 3);
-      const colors = ['#f44336', '#4caf50', '#2196f3', '#ffc107'];
-      ctx.fillStyle = colors[tick % colors.length];
-      ctx.globalAlpha = (tick + j) % 4 === 0 ? 0.9 : 0.2;
-      ctx.fillRect(sx + 6 + (j % 3) * 8, sz.y + 18 + Math.floor(j / 3) * 20 + (j % 2) * 8, 4, 3);
+      const tick = Math.floor(Date.now() / 200 + i * 7 + j * 3);
+      const brightness = (tick + j) % 4 === 0 ? 0.9 : 0.12;
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = brightness;
+      ctx.fillRect(sx + 6 + (j % 3) * 8, sz.y + 18 + Math.floor(j / 3) * 20 + (j % 2) * 8, 3, 2);
     }
+    // Disk activity bar — subtle
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = 0.06 + Math.abs(Math.sin(Date.now() / 300 + i)) * 0.08;
+    ctx.fillRect(sx + 4, sz.y + rackH - 12, 22, 4);
     ctx.globalAlpha = 1;
   }
 
@@ -574,42 +659,66 @@ function drawScene() {
   }
   drawCat();
 
-  // Title plaque
-  rect(W / 2 - 80, H - 22, 160, 18, '#3e2723');
-  ctx.fillStyle = PAL.gold;
-  ctx.font = '8px "Pixelify Sans", monospace';
+  // Title plaque — pixel style, monochrome
+  rect(W / 2 - 88, H - 22, 176, 16, '#111');
+  ctx.fillStyle = '#2a2a2a';
+  ctx.fillRect(W / 2 - 88, H - 22, 176, 1);
+  ctx.fillRect(W / 2 - 88, H - 7, 176, 1);
+  ctx.fillStyle = '#444';
+  ctx.font = '7px "Pixelify Sans", monospace';
   ctx.textAlign = 'center';
   ctx.fillText('ATTICUS \u00d7 AXEL \u00d7 ASTRA \u00d7 AXIOM', W / 2, H - 10);
   ctx.textAlign = 'left';
 }
 
 function drawPlant(x, y) {
-  rect(x, y + 10, 14, 14, '#4a3c2e');
-  rect(x + 2, y + 6, 10, 10, PAL.plant);
-  rect(x + 4, y, 6, 8, PAL.plantLight);
+  // Pot — dark gray pixel pot
+  rect(x + 2, y + 12, 10, 12, '#141414');
+  rect(x, y + 11, 14, 3, '#1a1a1a');
+  // Soil
+  rect(x + 3, y + 10, 8, 3, '#111');
+  // Stems + leaves — grayscale pixel art
+  rect(x + 5, y + 2, 2, 10, '#1e1e1e');
+  rect(x + 2, y + 4, 5, 4, '#222');
+  rect(x + 7, y, 5, 5, '#1d1d1d');
+  rect(x + 3, y, 3, 3, '#252525');
 }
 
 function drawClock(cx, cy) {
-  rect(cx - 10, cy - 10, 20, 20, '#333');
-  rect(cx - 8, cy - 8, 16, 16, '#1a1a1a');
+  // Pixel clock on wall — monochrome
+  rect(cx - 11, cy - 11, 22, 22, '#141414');
+  rect(cx - 9, cy - 9, 18, 18, '#0e0e0e');
+  // Clock border pixels
+  ctx.fillStyle = '#252525';
+  for (let a = 0; a < 12; a++) {
+    const angle = (a / 12) * Math.PI * 2 - Math.PI / 2;
+    ctx.fillRect(cx + Math.round(Math.cos(angle) * 8), cy + Math.round(Math.sin(angle) * 8), 1, 1);
+  }
+  // Hands
   const now = new Date();
   const h = now.getHours(), m = now.getMinutes();
-  ctx.strokeStyle = PAL.gold;
+  ctx.strokeStyle = '#555';
   ctx.lineWidth = 1;
+  // Hour hand
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(cx + Math.sin((h % 12 + m / 60) * Math.PI / 6) * 5, cy - Math.cos((h % 12 + m / 60) * Math.PI / 6) * 5);
   ctx.stroke();
+  // Minute hand
+  ctx.strokeStyle = '#777';
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(cx + Math.sin(m * Math.PI / 30) * 7, cy - Math.cos(m * Math.PI / 30) * 7);
   ctx.stroke();
+  // Center dot
+  ctx.fillStyle = '#666';
+  ctx.fillRect(cx - 1, cy - 1, 2, 2);
 }
 
-// ─── CAT ───
+// ─── CAT (monochrome — gray/white) ───
 const CAT = {
   x: 360, y: 240, tx: 360, ty: 240,
-  state: 'sleeping', // sleeping, walking, sitting, grooming
+  state: 'sleeping',
   stateAt: 0, facingLeft: false,
 };
 
@@ -625,7 +734,6 @@ function catPickTarget() {
   CAT.state = next;
   CAT.stateAt = Date.now();
   if (next === 'walking') {
-    // Pick a random spot on the floor
     if (isMobile) {
       CAT.tx = 30 + Math.random() * (W - 80);
       CAT.ty = 40 + Math.random() * (H - 80);
@@ -637,7 +745,6 @@ function catPickTarget() {
   }
 }
 
-// Pick first target
 setTimeout(() => { catPickTarget(); }, 3000);
 setInterval(() => {
   const elapsed = Date.now() - CAT.stateAt;
@@ -646,7 +753,6 @@ setInterval(() => {
 }, 2000);
 
 function drawCat() {
-  // Move toward target
   const dx = CAT.tx - CAT.x, dy = CAT.ty - CAT.y;
   const dist = Math.sqrt(dx * dx + dy * dy);
   const isMoving = CAT.state === 'walking' && dist > 2;
@@ -655,7 +761,6 @@ function drawCat() {
     CAT.y += dy * 0.03;
     CAT.facingLeft = dx < 0;
   } else if (CAT.state === 'walking' && dist <= 2) {
-    // Arrived — pick new state
     catPickTarget();
   }
 
@@ -663,6 +768,9 @@ function drawCat() {
   const y = Math.round(CAT.y);
   const fl = CAT.facingLeft;
   const walkBob = isMoving ? Math.sin(Date.now() / 100) * 1 : 0;
+  // Monochrome cat colors
+  const catBody = '#888';
+  const catDark = '#555';
 
   ctx.save();
   if (fl) {
@@ -672,77 +780,61 @@ function drawCat() {
   }
 
   if (CAT.state === 'sleeping') {
-    // Curled up loaf
-    rect(x, y + 2, 16, 8, '#c49040');
-    rect(x + 2, y, 6, 4, '#c49040');
-    // Ears
-    rect(x + 1, y - 2, 3, 3, '#c49040');
-    rect(x + 6, y - 2, 3, 3, '#c49040');
-    // Closed eyes
-    ctx.fillStyle = '#111';
+    rect(x, y + 2, 16, 8, catBody);
+    rect(x + 2, y, 6, 4, catBody);
+    rect(x + 1, y - 2, 3, 3, catBody);
+    rect(x + 6, y - 2, 3, 3, catBody);
+    ctx.fillStyle = '#333';
     ctx.fillRect(x + 3, y + 1, 2, 1);
-    // Tail wraps around
-    rect(x + 14, y + 4, 6, 3, '#c49040');
-    rect(x + 18, y + 2, 4, 3, '#b08030');
-    // Zzz
+    rect(x + 14, y + 4, 6, 3, catBody);
+    rect(x + 18, y + 2, 4, 3, catDark);
     const t = Date.now() / 1200;
-    ctx.fillStyle = '#555';
+    ctx.fillStyle = '#333';
     ctx.font = '6px monospace';
     ctx.fillText('z', x + 12, y - 4 - (t % 3) * 2);
     ctx.fillText('z', x + 16, y - 9 - (t % 3) * 2);
   } else if (CAT.state === 'grooming') {
-    // Sitting up, licking paw
-    rect(x + 2, y, 12, 12, '#c49040');
-    rect(x + 4, y - 6, 8, 8, '#c49040');
-    // Ears
-    rect(x + 3, y - 8, 3, 3, '#c49040');
-    rect(x + 8, y - 8, 3, 3, '#c49040');
-    // Eyes half-closed
-    ctx.fillStyle = '#111';
+    rect(x + 2, y, 12, 12, catBody);
+    rect(x + 4, y - 6, 8, 8, catBody);
+    rect(x + 3, y - 8, 3, 3, catBody);
+    rect(x + 8, y - 8, 3, 3, catBody);
+    ctx.fillStyle = '#333';
     ctx.fillRect(x + 5, y - 4, 2, 1);
     ctx.fillRect(x + 9, y - 4, 2, 1);
-    // Paw up (animated lick)
     const lick = Math.sin(Date.now() / 300) > 0;
-    rect(x + (lick ? 1 : 2), y + 2, 4, 4, '#c49040');
-    // Tail
-    rect(x + 12, y + 6, 6, 3, '#c49040');
+    rect(x + (lick ? 1 : 2), y + 2, 4, 4, catBody);
+    rect(x + 12, y + 6, 6, 3, catBody);
   } else {
-    // Standing / walking / sitting
-    rect(x, y, 16, 10, '#c49040');
-    rect(x + 2, y - 6, 8, 8, '#c49040');
-    // Ears
-    rect(x + 1, y - 8, 4, 4, '#c49040');
-    rect(x + 7, y - 8, 4, 4, '#c49040');
-    // Eyes
+    rect(x, y, 16, 10, catBody);
+    rect(x + 2, y - 6, 8, 8, catBody);
+    rect(x + 1, y - 8, 4, 4, catBody);
+    rect(x + 7, y - 8, 4, 4, catBody);
     if (Math.floor(Date.now() / 3000) % 5 === 0) {
-      ctx.fillStyle = '#111';
+      ctx.fillStyle = '#333';
       ctx.fillRect(x + 4, y - 3, 2, 1);
       ctx.fillRect(x + 7, y - 3, 2, 1);
     } else {
-      ctx.fillStyle = '#111';
+      ctx.fillStyle = '#333';
       ctx.fillRect(x + 4, y - 4, 2, 2);
       ctx.fillRect(x + 7, y - 4, 2, 2);
     }
-    // Tail
     const tailWag = Math.sin(Date.now() / 400) * 2;
-    rect(x + 14, y + 2, 8, 4, '#c49040');
-    rect(x + 20, y + tailWag, 4, 4, '#c49040');
-    // Legs with walk animation
-    rect(x + 1 + walkBob, y + 9, 4, 4, '#b08030');
-    rect(x + 11 - walkBob, y + 9, 4, 4, '#b08030');
+    rect(x + 14, y + 2, 8, 4, catBody);
+    rect(x + 20, y + tailWag, 4, 4, catBody);
+    rect(x + 1 + walkBob, y + 9, 4, 4, catDark);
+    rect(x + 11 - walkBob, y + 9, 4, 4, catDark);
   }
 
   ctx.restore();
 }
 
-// ─── DRAW AGENT ───
+// ─── DRAW AGENT (agents keep full color — they're the only color) ───
 function drawAgent(key) {
   const a = AGENTS[key];
   const bob = Math.sin(Date.now() / 350 + key.charCodeAt(0)) * 1.5;
   const x = Math.round(a.x);
   const y = Math.round(a.y + bob);
 
-  // Move toward target
   const dx = a.tx - a.x, dy = a.ty - a.y;
   const dist = Math.sqrt(dx * dx + dy * dy);
   if (dist > 1) {
@@ -753,34 +845,30 @@ function drawAgent(key) {
   const isWalking = dist > 3;
   const walkOff = isWalking ? Math.sin(Date.now() / 100) * 2 : 0;
 
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  // Shadow — subtle on dark floor
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
   ctx.beginPath();
   ctx.ellipse(x + 6, y + 18, 8, 3, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Body (12x14 blob)
+  // Body
   rect(x, y, 12, 14, a.body);
-  // Belly
   rect(x + 2, y + 5, 8, 8, a.belly);
 
   // Ears
   rect(x - 1, y - 4, 5, 5, a.ear || a.body);
   rect(x + 8, y - 4, 5, 5, a.ear || a.body);
-  // Inner ears
   rect(x, y - 3, 3, 3, a.belly);
   rect(x + 9, y - 3, 3, 3, a.belly);
 
   // Eyes
   ctx.fillStyle = a.eye;
   if (a.status === 'sleeping') {
-    // Closed eyes
     ctx.fillRect(x + 2, y + 2, 3, 1);
     ctx.fillRect(x + 7, y + 2, 3, 1);
   } else {
     ctx.fillRect(x + 3, y + 1, 2, 2);
     ctx.fillRect(x + 7, y + 1, 2, 2);
-    // Eye shine
     ctx.fillStyle = '#fff';
     ctx.fillRect(x + 3, y + 1, 1, 1);
     ctx.fillRect(x + 7, y + 1, 1, 1);
@@ -794,7 +882,7 @@ function drawAgent(key) {
     ctx.fill();
   }
 
-  // Tiger stripes (Axel only)
+  // Tiger stripes (Axel)
   if (key === 'axel' && a.stripe) {
     ctx.fillStyle = a.stripe;
     ctx.globalAlpha = 0.35;
@@ -813,7 +901,7 @@ function drawAgent(key) {
     ctx.globalAlpha = 1;
   }
 
-  // Legs (walk animation)
+  // Legs
   rect(x + 1 + walkOff, y + 13, 4, 4, a.body);
   rect(x + 7 - walkOff, y + 13, 4, 4, a.body);
 
@@ -825,16 +913,16 @@ function drawAgent(key) {
     rect(x + 18, y + 6 + tailBob, 4, 3, a.body);
   }
 
-  // Axiom: fox tail with white tip
+  // Fox tail
   if (key === 'axiom') {
     const tailBob = Math.sin(Date.now() / 600) * 1.5;
     rect(x + 12, y + 7 + tailBob, 5, 3, a.body);
     rect(x + 16, y + 5 + tailBob, 4, 3, a.body);
-    rect(x + 19, y + 4 + tailBob, 3, 3, '#fff'); // white tip
+    rect(x + 19, y + 4 + tailBob, 3, 3, '#fff');
   }
 
-  // Status dot
-  const dotColors = { working: '#4caf50', idle: '#ffc107', exploring: '#2196f3', error: '#f44336', sleeping: '#9c27b0' };
+  // Status dot — keep color for quick status read
+  const dotColors = { working: '#4caf50', idle: '#888', exploring: '#4fc3f7', error: '#f44336', sleeping: '#555' };
   ctx.fillStyle = dotColors[a.status] || '#888';
   ctx.beginPath();
   ctx.arc(x + 14, y - 2, 2.5, 0, Math.PI * 2);
@@ -842,22 +930,22 @@ function drawAgent(key) {
 
   // Sleeping zzz
   if (a.status === 'sleeping') {
-    ctx.fillStyle = '#888';
+    ctx.fillStyle = '#444';
     ctx.font = '6px monospace';
     const t = Date.now() / 800;
     ctx.fillText('z', x + 14, y - 6 - (t % 3) * 2);
     ctx.fillText('z', x + 18, y - 10 - (t % 3) * 2);
   }
 
-  // Name
-  ctx.fillStyle = '#aaa';
-  ctx.font = '7px "Pixelify Sans", monospace';
+  // Name label — slightly brighter for readability
+  ctx.fillStyle = '#666';
+  ctx.font = '6px "Pixelify Sans", monospace';
   ctx.textAlign = 'center';
   ctx.fillText(a.name, x + 6, y - 8);
   ctx.textAlign = 'left';
 }
 
-// ─── BUBBLES ───
+// ─── SPEECH BUBBLES ───
 function maybeBubble(key) {
   const a = AGENTS[key];
   if (a.bubble && Date.now() - a.bubbleAt > 3500) a.bubble = null;
@@ -887,21 +975,34 @@ function drawBubble(key) {
 
   ctx.globalAlpha = alpha;
 
-  // Bubble bg
-  ctx.fillStyle = '#fff';
+  // Bubble — monochrome: dark bg, white border, white text
+  ctx.fillStyle = '#111';
   ctx.beginPath();
-  ctx.roundRect(bx - tw / 2, by - 10 * scale, tw, 20 * scale, 5 * scale);
+  ctx.roundRect(bx - tw / 2, by - 10 * scale, tw, 20 * scale, 2 * scale);
   ctx.fill();
+  // Border
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(bx - tw / 2, by - 10 * scale, tw, 20 * scale, 2 * scale);
+  ctx.stroke();
   // Pointer
+  ctx.fillStyle = '#111';
   ctx.beginPath();
   ctx.moveTo(bx - 4 * scale, by + 10 * scale);
   ctx.lineTo(bx, by + 16 * scale);
   ctx.lineTo(bx + 4 * scale, by + 10 * scale);
   ctx.fill();
+  ctx.strokeStyle = '#555';
+  ctx.beginPath();
+  ctx.moveTo(bx - 4 * scale, by + 10 * scale);
+  ctx.lineTo(bx, by + 16 * scale);
+  ctx.lineTo(bx + 4 * scale, by + 10 * scale);
+  ctx.stroke();
 
-  // Text
-  ctx.fillStyle = '#111';
-  ctx.font = 'bold ' + (9 * scale) + 'px "Pixelify Sans", sans-serif';
+  // Text — white
+  ctx.fillStyle = '#ccc';
+  ctx.font = (9 * scale) + 'px "Pixelify Sans", monospace';
   ctx.textAlign = 'center';
   ctx.fillText(text, bx, by + 4 * scale);
   ctx.textAlign = 'left';
@@ -909,14 +1010,14 @@ function drawBubble(key) {
   ctx.globalAlpha = 1;
 }
 
-// ─── TIME OF DAY ───
+// ─── TIME OF DAY (very subtle on monochrome) ───
 function timeOverlay() {
   const h = new Date().getHours();
   let c, a;
-  if (h >= 6 && h < 12)       { c = '255,200,100'; a = 0.08; }
-  else if (h >= 12 && h < 18) { c = '255,255,255'; a = 0.03; }
-  else if (h >= 18 && h < 22) { c = '255,150,70';  a = 0.12; }
-  else                         { c = '40,40,100';   a = 0.25; }
+  if (h >= 6 && h < 12)       { c = '255,255,220'; a = 0.03; }
+  else if (h >= 12 && h < 18) { c = '255,255,255'; a = 0.01; }
+  else if (h >= 18 && h < 22) { c = '255,180,80';  a = 0.05; }
+  else                         { c = '20,20,40';    a = 0.18; }
   ctx.fillStyle = `rgba(${c},${a})`;
   ctx.fillRect(0, 0, W, H);
 }
@@ -926,13 +1027,12 @@ function updateCards() {
   for (const [key, a] of Object.entries(AGENTS)) {
     const card = document.getElementById('card-' + key);
     if (!card) continue;
-    card.querySelector('.card-status').textContent = a.status;
-    card.querySelector('.card-task').textContent = a.task || '';
+    card.querySelector('.card-status').textContent = '> ' + a.status;
+    card.querySelector('.card-task').textContent = a.task ? '_ ' + a.task : '';
   }
 }
 
 // ─── RICH SIMULATION ENGINE ───
-// Each agent has their own schedule of activities that cycle through
 const ACTIVITIES = {
   atticus: [
     { status: 'working', task: 'Pixel Dailies — painting today\'s piece', dur: [15,25], thoughts: ['Palette feels right.', '20×20 is tricky.', 'Almost done.', 'One more frame.'] },
@@ -976,7 +1076,6 @@ const ACTIVITIES = {
   ],
 };
 
-// Each agent tracks their own activity index and timer
 const SIM = {
   atticus: { idx: 0, nextAt: 0, customThoughts: null },
   axel:    { idx: 2, nextAt: 0, customThoughts: null },
@@ -990,11 +1089,9 @@ function advanceAgent(key) {
   const now = Date.now();
   if (now < sim.nextAt) return;
 
-  // Pick next activity (sequential with some randomness)
   sim.idx = (sim.idx + 1 + Math.floor(Math.random() * 2)) % acts.length;
   const act = acts[sim.idx];
 
-  // Apply time-of-day override
   const h = new Date().getHours();
   if (h >= 23 || h < 7) {
     AGENTS[key].status = 'sleeping';
@@ -1016,7 +1113,6 @@ function advanceAgent(key) {
 }
 
 // Override thought bubbles to use current activity thoughts
-const _origMaybeBubble = maybeBubble;
 maybeBubble = function(key) {
   const a = AGENTS[key];
   if (a.bubble && Date.now() - a.bubbleAt > 3500) a.bubble = null;
@@ -1046,10 +1142,8 @@ const FEED_ITEMS = [
 function frame() {
   drawScene();
 
-  // Advance simulation
   for (const k of Object.keys(AGENTS)) advanceAgent(k);
 
-  // Sort agents by y for depth
   const sorted = Object.keys(AGENTS).sort((a, b) => AGENTS[a].y - AGENTS[b].y);
   for (const k of sorted) {
     maybeBubble(k);
@@ -1069,7 +1163,6 @@ const panel = document.getElementById('panel');
 const overlay = document.getElementById('panel-overlay');
 const panelIntro = document.getElementById('panel-intro');
 const panelTasks = document.getElementById('panel-tasks');
-const taskList = document.getElementById('task-list');
 
 function closePanel() {
   panel.classList.remove('open');
@@ -1089,13 +1182,12 @@ function togglePanel(tab) {
   panelIntro.style.display = tab === 'intro' ? '' : 'none';
   panelTasks.style.display = tab === 'tasks' ? '' : 'none';
   if (tab === 'tasks') {
-    // Populate activity feed
     const list = document.getElementById('task-list');
     list.innerHTML = FEED_ITEMS.map(item => {
-      const agentColor = { atticus: '#C49B30', axel: '#FF8C00', astra: '#D4652A' }[item.agent] || '#888';
+      const agentColor = { atticus: '#C49B30', axel: '#FF8C00', astra: '#D4652A', axiom: '#E0780A' }[item.agent] || '#888';
       return `<li>
-        <div class="task-agent" style="color:${agentColor}">${item.icon} ${item.agent.charAt(0).toUpperCase() + item.agent.slice(1)}</div>
-        <div style="font-size:13px;color:#ccc">${item.text}</div>
+        <div class="task-agent ${item.agent}" style="color:${agentColor}">${item.icon} ${item.agent.charAt(0).toUpperCase() + item.agent.slice(1)}</div>
+        <div style="font-size:12px;color:#777">${item.text}</div>
         <div class="task-status">${item.time}</div>
       </li>`;
     }).join('');
@@ -1105,15 +1197,13 @@ function togglePanel(tab) {
   panelOpen = true;
 }
 
-
-
 pillBar.addEventListener('click', e => {
   const tab = e.target.closest('.pill-tab');
   if (tab) togglePanel(tab.dataset.tab);
 });
 overlay.addEventListener('click', closePanel);
 
-// ─── AUDIO ENGINE (MP3) ───
+// ─── AUDIO ENGINE ───
 const AudioEngine = (() => {
   let audio, playing = false;
 
@@ -1139,7 +1229,6 @@ const AudioEngine = (() => {
   return { toggle, isPlaying: () => playing };
 })();
 
-// Audio toggle button
 document.getElementById('audio-toggle').addEventListener('click', e => {
   e.stopPropagation();
   const on = AudioEngine.toggle();
