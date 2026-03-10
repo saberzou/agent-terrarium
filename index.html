@@ -1288,9 +1288,9 @@ frame();
         border: 2px solid #d5d0c8;
       }
 
-      /* Power/close — top-right rocker switch */
+      /* Power/close — bottom-left, opposite LED */
       #neko-close {
-        position: absolute; top: 6px; right: 8px; z-index: 201;
+        position: absolute; bottom: 14px; left: 14px; z-index: 201;
         font-family: 'Pixelify Sans', monospace; font-size: 11px;
         color: #aaa; background: linear-gradient(180deg, #e8e6e1, #d8d5cf);
         border: 1.5px solid #bbb; border-radius: 3px;
@@ -1373,20 +1373,9 @@ frame();
         50% { opacity: 0.4; }
       }
 
-      /* ═══ Trapezoidal stand ═══ */
-      .mac-stand {
-        width: 50%; height: 12px; margin: 0 auto;
-        background: linear-gradient(180deg, #d5d0c8, #c0bbb3);
-        clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
-        border-radius: 0 0 2px 2px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      }
-      .mac-stand-base {
-        width: 60%; height: 4px; margin: 0 auto;
-        background: linear-gradient(180deg, #bbb7af, #a8a39b);
-        border-radius: 0 0 3px 3px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      }
+      /* ═══ Trapezoidal stand — removed ═══ */
+      .mac-stand { display: none; }
+      .mac-stand-base { display: none; }
 
       /* ═══ Detached keyboard ═══ */
       .mac-keyboard {
@@ -1399,14 +1388,18 @@ frame();
         box-shadow: 0 3px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
         max-width: 400px; width: 88vw;
       }
-      /* Decorative keys */
-      .mac-key-deco {
-        width: 28px; height: 28px;
+      /* Modifier keys */
+      .mac-key-mod {
+        font-family: 'Pixelify Sans', monospace; font-size: 10px;
+        color: #666;
         background: linear-gradient(180deg, #eae7e2, #dbd8d2);
         border: 1.5px solid #bbb;
         border-bottom-width: 3px;
         border-radius: 4px;
         box-shadow: 0 1px 0 #aaa;
+        padding: 8px 10px; height: 40px;
+        display: flex; align-items: center; justify-content: center;
+        user-select: none; -webkit-user-select: none;
       }
       /* Functional keys */
       .retro-btn {
@@ -1416,20 +1409,21 @@ frame();
         border: 1.5px solid #b5b0a8;
         border-bottom-width: 4px;
         border-radius: 5px;
-        padding: 8px 16px; cursor: pointer;
+        padding: 0 16px; height: 40px; cursor: pointer;
         user-select: none; -webkit-user-select: none;
         touch-action: manipulation; line-height: 1;
         transition: border-bottom-width 0.05s, transform 0.05s;
         box-shadow: 0 1px 0 #aaa, inset 0 1px 0 rgba(255,255,255,0.6);
+        display: flex; align-items: center; justify-content: center;
       }
       .retro-btn:active, .retro-btn.pressed {
         border-bottom-width: 1.5px; transform: translateY(2px); box-shadow: none;
         background: linear-gradient(180deg, #dbd8d2, #d0cdc7);
       }
-      .retro-btn-arrow { font-size: 18px; padding: 8px 14px; min-width: 44px; text-align: center; }
+      .retro-btn-arrow { font-size: 18px; padding: 0 14px; min-width: 44px; text-align: center; height: 40px; }
       .retro-btn-space {
         flex: 1; max-width: 140px; font-size: 12px;
-        letter-spacing: 2px; padding: 8px 12px; text-align: center;
+        letter-spacing: 2px; padding: 0 12px; height: 40px; text-align: center;
       }
 
       /* ═══ Mobile ═══ */
@@ -1438,12 +1432,12 @@ frame();
         .mac-screen-bezel { border-width: 4px; padding: 4px; }
         .mac-chin { padding: 10px 10px 12px 10px; }
         .mac-keyboard { padding: 8px 10px; gap: 6px; max-width: 95vw; width: 95vw; margin-top: 10px; }
-        .retro-btn { padding: 10px 12px; font-size: 14px; min-height: 44px; }
-        .retro-btn-arrow { padding: 10px 16px; font-size: 20px; min-width: 48px; min-height: 44px; }
-        .retro-btn-space { padding: 10px 10px; min-height: 44px; }
-        .mac-key-deco { width: 24px; height: 24px; min-height: 44px; }
-        .mac-stand { height: 8px; }
-        .mac-stand-base { height: 3px; }
+        .retro-btn { padding: 0 12px; font-size: 14px; height: 44px; min-height: 44px; }
+        .retro-btn-arrow { padding: 0 16px; font-size: 20px; min-width: 48px; height: 44px; min-height: 44px; }
+        .retro-btn-space { padding: 0 10px; height: 44px; min-height: 44px; }
+        .mac-key-mod { height: 44px; min-height: 44px; padding: 0 8px; font-size: 9px; }
+        .mac-stand { display: none; }
+        .mac-stand-base { display: none; }
       }
     </style>
 
@@ -1465,11 +1459,11 @@ frame();
 
     <!-- Detached keyboard -->
     <div class="mac-keyboard">
-      <div class="mac-key-deco"></div>
-      <button class="retro-btn retro-btn-arrow" id="neko-btn-left">\u25C0</button>
+      <div class="mac-key-mod">CTRL</div>
+      <button class="retro-btn retro-btn-arrow" id="neko-btn-left">◀</button>
       <button class="retro-btn retro-btn-space" id="neko-btn-start">SPACE</button>
-      <button class="retro-btn retro-btn-arrow" id="neko-btn-right">\u25B6</button>
-      <div class="mac-key-deco"></div>
+      <button class="retro-btn retro-btn-arrow" id="neko-btn-right">▶</button>
+      <div class="mac-key-mod">⌘ CMD</div>
     </div>
   `;
   document.body.appendChild(overlay);
