@@ -1270,14 +1270,14 @@ frame();
         transition: opacity .35s ease;
       }
       #neko-overlay.open { opacity: 1; pointer-events: auto; }
-      /* Retro computer body */
+      /* Retro computer body — white/light gray Apple aesthetic */
       .retro-pc {
         position: relative;
-        background: #d4c8a0;
-        border: 4px solid #b8a878;
+        background: #f5f5f5;
+        border: 4px solid #e0e0e0;
         border-radius: 16px 16px 8px 8px;
         padding: 20px 20px 12px 20px;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.15);
         max-width: 420px;
         width: 90vw;
         font-family: 'Pixelify Sans', monospace;
@@ -1286,7 +1286,7 @@ frame();
       .retro-pc-brand {
         text-align: center;
         font-size: 11px;
-        color: #8a7e60;
+        color: #999;
         letter-spacing: 3px;
         margin-bottom: 8px;
         text-transform: uppercase;
@@ -1294,7 +1294,7 @@ frame();
       /* Monitor bezel */
       .retro-monitor {
         background: #1a1a1a;
-        border: 6px solid #2a2520;
+        border: 6px solid #333;
         border-radius: 10px;
         padding: 8px;
         position: relative;
@@ -1342,13 +1342,13 @@ frame();
         margin-top: 14px;
         padding: 8px 0 4px 0;
       }
-      /* Arcade button base */
+      /* Arcade button base — white theme */
       .retro-btn {
         font-family: 'Pixelify Sans', monospace;
         font-size: 16px;
-        color: #2a2520;
-        background: #c4b888;
-        border: 3px solid #a89868;
+        color: #555;
+        background: #e8e8e8;
+        border: 3px solid #ccc;
         border-bottom-width: 5px;
         border-radius: 6px;
         padding: 8px 16px;
@@ -1358,7 +1358,7 @@ frame();
         touch-action: manipulation;
         line-height: 1;
         transition: border-bottom-width 0.05s, transform 0.05s;
-        box-shadow: 0 2px 0 #8a7e60;
+        box-shadow: 0 2px 0 #bbb;
       }
       .retro-btn:active, .retro-btn.pressed {
         border-bottom-width: 3px;
@@ -1390,9 +1390,9 @@ frame();
         right: 10px;
         font-family: 'Pixelify Sans', monospace;
         font-size: 14px;
-        color: #8a7e60;
-        background: #c4b888;
-        border: 2px solid #a89868;
+        color: #999;
+        background: #e8e8e8;
+        border: 2px solid #ccc;
         border-radius: 50%;
         width: 26px; height: 26px;
         cursor: pointer;
@@ -1409,7 +1409,7 @@ frame();
       }
       .retro-vents span {
         display: block; width: 24px; height: 2px;
-        background: #8a7e60; border-radius: 1px;
+        background: #ccc; border-radius: 1px;
       }
       /* Mobile responsive */
       @media (max-width: 480px) {
@@ -1451,6 +1451,16 @@ frame();
   let spawnTimer = 0;
   let baseSpeed = 1.2;
   let animId = null;
+  let particles = [];
+  let scorePopups = [];
+  let stars = [];
+  let catExpression = 'normal'; // normal | happy | alarmed
+  let catExpressionTimer = 0;
+
+  // Generate stars for background
+  for (let i = 0; i < 60; i++) {
+    stars.push({ x: Math.random() * GW, y: Math.random() * (GH - 60), size: Math.random() > 0.7 ? 2 : 1, twinkle: Math.random() * 1000 });
+  }
 
   function openNekoCatch() {
     overlay.classList.add('open');
@@ -1535,6 +1545,108 @@ frame();
     gameState = 'playing';
     score = 0; items = []; spawnTimer = 0; baseSpeed = 1.2;
     catX = GW / 2 - 10;
+    particles = []; scorePopups = [];
+    catExpression = 'normal'; catExpressionTimer = 0;
+  }
+
+  function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 3,
+        vy: -Math.random() * 2 - 1,
+        life: 20 + Math.random() * 15,
+        color: color,
+        size: Math.random() > 0.5 ? 2 : 1
+      });
+    }
+  }
+
+  function addScorePopup(x, y, text, color) {
+    scorePopups.push({ x: x, y: y, text: text, life: 30, color: color });
+  }
+
+  function drawBackground() {
+    // Night sky gradient based on score
+    var darkness = Math.min(score * 0.008, 0.4);
+    var r = Math.max(4, 8 - Math.floor(darkness * 20));
+    var g = Math.max(4, 8 - Math.floor(darkness * 20));
+    var b = Math.max(12, 20 - Math.floor(darkness * 20));
+    nctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+    nctx.fillRect(0, 0, GW, GH);
+
+    // Stars
+    var now = Date.now();
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      var alpha = 0.3 + Math.sin((now + s.twinkle) / (400 + s.twinkle % 300)) * 0.3;
+      nctx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
+      nctx.fillRect(Math.floor(s.x), Math.floor(s.y), s.size, s.size);
+    }
+
+    // Moon (appears as score grows)
+    if (score > 5) {
+      var moonAlpha = Math.min((score - 5) * 0.05, 0.6);
+      nctx.fillStyle = 'rgba(220,220,200,' + moonAlpha + ')';
+      nctx.fillRect(GW - 40, 20, 16, 16);
+      nctx.fillRect(GW - 42, 22, 20, 12);
+      nctx.fillRect(GW - 38, 18, 12, 20);
+      // crater
+      nctx.fillStyle = 'rgba(180,180,160,' + (moonAlpha * 0.5) + ')';
+      nctx.fillRect(GW - 36, 26, 4, 4);
+      nctx.fillRect(GW - 30, 22, 3, 3);
+    }
+
+    // Ground / grass floor
+    var groundY = GH - 18;
+    nctx.fillStyle = '#1a3a1a';
+    nctx.fillRect(0, groundY, GW, 18);
+    // Grass tufts
+    nctx.fillStyle = '#2a5a2a';
+    for (var gx = 0; gx < GW; gx += 6) {
+      var gh = 2 + (gx * 7 + 13) % 4;
+      nctx.fillRect(gx, groundY - gh, 2, gh);
+    }
+    // Dirt layer
+    nctx.fillStyle = '#2a2014';
+    nctx.fillRect(0, GH - 6, GW, 6);
+    // pixel dots on ground
+    nctx.fillStyle = '#1a2a12';
+    for (var dx = 2; dx < GW; dx += 8) {
+      nctx.fillRect(dx, groundY + 4, 1, 1);
+    }
+  }
+
+  function updateParticles() {
+    for (var i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.08;
+      p.life--;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      var a = p.life / 35;
+      nctx.fillStyle = p.color;
+      nctx.globalAlpha = a;
+      nctx.fillRect(Math.floor(p.x), Math.floor(p.y), p.size, p.size);
+    }
+    nctx.globalAlpha = 1;
+  }
+
+  function updateScorePopups() {
+    for (var i = scorePopups.length - 1; i >= 0; i--) {
+      var p = scorePopups[i];
+      p.y -= 1;
+      p.life--;
+      if (p.life <= 0) { scorePopups.splice(i, 1); continue; }
+      nctx.fillStyle = p.color;
+      nctx.globalAlpha = p.life / 30;
+      nctx.font = '12px "Pixelify Sans", monospace';
+      nctx.textAlign = 'center';
+      nctx.fillText(p.text, Math.floor(p.x), Math.floor(p.y));
+      nctx.textAlign = 'left';
+    }
+    nctx.globalAlpha = 1;
   }
 
   function spawnItem() {
@@ -1546,9 +1658,9 @@ frame();
     items.push({ type, x: 10 + Math.random() * (GW - 30), y: -12, speed: baseSpeed + Math.random() * 0.5 });
   }
 
-  // Draw pixel cat for game (same style as terrarium)
+  // Draw pixel cat for game with expressions
   function drawGameCat(x, y) {
-    const cb = '#aaa', cd = '#777';
+    var cb = '#aaa', cd = '#777';
     nctx.fillStyle = cb;
     // body
     nctx.fillRect(x, y, 16, 10);
@@ -1557,10 +1669,36 @@ frame();
     // ears
     nctx.fillRect(x + 1, y - 8, 4, 4);
     nctx.fillRect(x + 7, y - 8, 4, 4);
-    // eyes
-    nctx.fillStyle = '#333';
-    nctx.fillRect(x + 4, y - 4, 2, 2);
-    nctx.fillRect(x + 7, y - 4, 2, 2);
+    // expression timer
+    if (catExpressionTimer > 0) catExpressionTimer--;
+    else catExpression = 'normal';
+
+    if (catExpression === 'happy') {
+      // happy squint eyes + smile
+      nctx.fillStyle = '#333';
+      nctx.fillRect(x + 3, y - 3, 3, 1);
+      nctx.fillRect(x + 7, y - 3, 3, 1);
+      // blush
+      nctx.fillStyle = 'rgba(255,150,150,0.4)';
+      nctx.fillRect(x + 2, y - 1, 3, 2);
+      nctx.fillRect(x + 8, y - 1, 3, 2);
+    } else if (catExpression === 'alarmed') {
+      // wide eyes
+      nctx.fillStyle = '#fff';
+      nctx.fillRect(x + 3, y - 5, 3, 3);
+      nctx.fillRect(x + 7, y - 5, 3, 3);
+      nctx.fillStyle = '#111';
+      nctx.fillRect(x + 4, y - 4, 1, 1);
+      nctx.fillRect(x + 8, y - 4, 1, 1);
+      // open mouth
+      nctx.fillStyle = '#555';
+      nctx.fillRect(x + 5, y, 2, 2);
+    } else {
+      // normal eyes
+      nctx.fillStyle = '#333';
+      nctx.fillRect(x + 4, y - 4, 2, 2);
+      nctx.fillRect(x + 7, y - 4, 2, 2);
+    }
     // legs
     nctx.fillStyle = cd;
     nctx.fillRect(x + 1, y + 9, 4, 4);
@@ -1606,10 +1744,26 @@ frame();
   }
 
   function gameLoop() {
-    nctx.fillStyle = '#080808';
+    nctx.fillStyle = '#080810';
     nctx.fillRect(0, 0, GW, GH);
 
     if (gameState === 'title') {
+      // Draw stars on title
+      var now = Date.now();
+      for (var si = 0; si < stars.length; si++) {
+        var st = stars[si];
+        var al = 0.2 + Math.sin((now + st.twinkle) / 500) * 0.2;
+        nctx.fillStyle = 'rgba(255,255,255,' + al + ')';
+        nctx.fillRect(Math.floor(st.x), Math.floor(st.y), st.size, st.size);
+      }
+      // Ground on title
+      nctx.fillStyle = '#1a3a1a';
+      nctx.fillRect(0, GH - 18, GW, 18);
+      nctx.fillStyle = '#2a5a2a';
+      for (var tgx = 0; tgx < GW; tgx += 6) {
+        nctx.fillRect(tgx, GH - 20, 2, 2 + (tgx * 7) % 4);
+      }
+
       nctx.fillStyle = '#ccc';
       nctx.font = '28px "Pixelify Sans", monospace';
       nctx.textAlign = 'center';
@@ -1617,8 +1771,13 @@ frame();
       nctx.fillStyle = '#666';
       nctx.font = '14px "Pixelify Sans", monospace';
       nctx.fillText('Tap to Start', GW / 2, GH / 2 + 10);
+      if (highScore > 0) {
+        nctx.fillStyle = '#555';
+        nctx.font = '11px "Pixelify Sans", monospace';
+        nctx.fillText('High Score: ' + highScore, GW / 2, GH / 2 + 28);
+      }
       // draw cat preview
-      drawGameCat(GW / 2 - 8, GH / 2 + 40);
+      drawGameCat(GW / 2 - 8, GH / 2 + 46);
       nctx.textAlign = 'left';
     } else if (gameState === 'playing') {
       // Move cat with keys
@@ -1634,20 +1793,45 @@ frame();
       const spawnRate = Math.max(20, 60 - score * 1.5);
       if (spawnTimer >= spawnRate) { spawnItem(); spawnTimer = 0; }
 
+      // Check for nearby bombs — alarmed expression
+      var nearBomb = false;
+      for (var bi = 0; bi < items.length; bi++) {
+        var bomb = items[bi];
+        if (bomb.type === 'bomb' && bomb.y > GH - 80 && Math.abs(bomb.x - catX) < 40) {
+          nearBomb = true; break;
+        }
+      }
+      if (nearBomb && catExpression !== 'happy') {
+        catExpression = 'alarmed';
+        catExpressionTimer = 10;
+      }
+
+      // Draw background
+      drawBackground();
+
       // Update items
+      var catY = GH - 36;
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i];
         it.y += it.speed;
         // Off screen
         if (it.y > GH) { items.splice(i, 1); continue; }
-        // Collision with cat (cat at catX, GH-30, 20x14)
-        const catY = GH - 30;
+        // Collision with cat
         if (it.y + 10 >= catY && it.y <= catY + 14 && it.x + 10 >= catX && it.x <= catX + 20) {
           if (it.type === 'bomb') {
             gameState = 'over';
             if (score > highScore) { highScore = score; localStorage.setItem('nekoCatchHi', String(highScore)); }
+            spawnParticles(it.x + 5, it.y + 5, '#ff4444', 12);
+            spawnParticles(it.x + 5, it.y + 5, '#ffaa00', 8);
           } else {
-            score += it.type === 'yarn' ? 3 : 1;
+            var pts = it.type === 'yarn' ? 3 : 1;
+            score += pts;
+            catExpression = 'happy';
+            catExpressionTimer = 20;
+            var pColor = it.type === 'yarn' ? '#ff9999' : '#99ddff';
+            spawnParticles(it.x + 5, it.y + 5, pColor, 6);
+            spawnParticles(it.x + 5, it.y + 5, '#fff', 3);
+            addScorePopup(it.x + 5, it.y, '+' + pts, it.type === 'yarn' ? '#e57373' : '#4fc3f7');
           }
           items.splice(i, 1);
         }
@@ -1660,8 +1844,12 @@ frame();
         else drawBomb(it.x, it.y);
       }
 
-      // Draw cat
-      drawGameCat(Math.round(catX), GH - 30);
+      // Draw cat on the ground
+      drawGameCat(Math.round(catX), catY);
+
+      // Particles & popups
+      updateParticles();
+      updateScorePopups();
 
       // Score
       nctx.fillStyle = '#888';
