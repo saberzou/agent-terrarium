@@ -1241,6 +1241,283 @@ document.getElementById('audio-toggle').addEventListener('click', e => {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 frame();
+
+// ─── NEKO CATCH EASTER EGG ───
+(function() {
+  // Click detection on terrarium canvas for the cat
+  canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+    const hitW = 24, hitH = 18;
+    if (mx >= CAT.x - 4 && mx <= CAT.x + hitW && my >= CAT.y - 10 && my <= CAT.y + hitH) {
+      openNekoCatch();
+    }
+  });
+
+  // Overlay elements
+  const overlay = document.createElement('div');
+  overlay.id = 'neko-overlay';
+  overlay.innerHTML = `
+    <style>
+      #neko-overlay {
+        position: fixed; inset: 0; z-index: 200;
+        background: rgba(0,0,0,0.85);
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none;
+        transition: opacity .35s ease;
+      }
+      #neko-overlay.open { opacity: 1; pointer-events: auto; }
+      #neko-overlay canvas {
+        display: block; width: 100%; max-width: 800px;
+        image-rendering: pixelated; image-rendering: crisp-edges;
+        border: 1px solid #2a2a2a;
+        box-shadow: 0 0 40px rgba(255,255,255,0.03), 0 8px 60px rgba(0,0,0,0.8);
+      }
+      #neko-close {
+        position: absolute; top: 16px; right: 20px;
+        font-family: 'Pixelify Sans', monospace; font-size: 22px;
+        color: #666; background: none; border: none; cursor: pointer;
+        z-index: 201; padding: 8px; line-height: 1;
+      }
+      #neko-close:hover { color: #ccc; }
+      /* CRT scanlines on game */
+      #neko-wrap { position: relative; width: 100%; max-width: 800px; }
+      #neko-wrap::after {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+      }
+    </style>
+    <button id="neko-close">\u2715</button>
+    <div id="neko-wrap"><canvas id="neko-canvas"></canvas></div>
+  `;
+  document.body.appendChild(overlay);
+
+  const nc = document.getElementById('neko-canvas');
+  const nctx = nc.getContext('2d');
+  const closeBtn = document.getElementById('neko-close');
+  const GW = 320, GH = 400;
+  nc.width = GW; nc.height = GH;
+  nctx.imageSmoothingEnabled = false;
+
+  let gameState = 'title'; // title | playing | over
+  let score = 0, highScore = parseInt(localStorage.getItem('nekoCatchHi') || '0');
+  let catX = GW / 2 - 10;
+  let items = [];
+  let spawnTimer = 0;
+  let baseSpeed = 1.2;
+  let animId = null;
+
+  function openNekoCatch() {
+    overlay.classList.add('open');
+    gameState = 'title';
+    if (!animId) gameLoop();
+  }
+
+  function closeNekoCatch() {
+    overlay.classList.remove('open');
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+  }
+
+  closeBtn.addEventListener('click', closeNekoCatch);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeNekoCatch();
+  });
+
+  // Input
+  let keys = {};
+  document.addEventListener('keydown', function(e) { keys[e.key] = true; });
+  document.addEventListener('keyup', function(e) { keys[e.key] = false; });
+
+  // Mouse/touch on game canvas
+  let dragging = false;
+  nc.addEventListener('mousemove', function(e) {
+    if (gameState !== 'playing') return;
+    const r = nc.getBoundingClientRect();
+    catX = (e.clientX - r.left) / r.width * GW - 10;
+  });
+  nc.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    if (gameState === 'title') { startGame(); return; }
+    if (gameState === 'over') { gameState = 'title'; return; }
+    dragging = true;
+    handleTouch(e);
+  }, { passive: false });
+  nc.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (dragging && gameState === 'playing') handleTouch(e);
+  }, { passive: false });
+  nc.addEventListener('touchend', function() { dragging = false; });
+
+  function handleTouch(e) {
+    const t = e.touches[0];
+    const r = nc.getBoundingClientRect();
+    catX = (t.clientX - r.left) / r.width * GW - 10;
+  }
+
+  nc.addEventListener('click', function() {
+    if (gameState === 'title') startGame();
+    else if (gameState === 'over') gameState = 'title';
+  });
+
+  function startGame() {
+    gameState = 'playing';
+    score = 0; items = []; spawnTimer = 0; baseSpeed = 1.2;
+    catX = GW / 2 - 10;
+  }
+
+  function spawnItem() {
+    const r = Math.random();
+    let type;
+    if (r < 0.12) type = 'bomb';
+    else if (r < 0.28) type = 'yarn';
+    else type = 'fish';
+    items.push({ type, x: 10 + Math.random() * (GW - 30), y: -12, speed: baseSpeed + Math.random() * 0.5 });
+  }
+
+  // Draw pixel cat for game (same style as terrarium)
+  function drawGameCat(x, y) {
+    const cb = '#aaa', cd = '#777';
+    nctx.fillStyle = cb;
+    // body
+    nctx.fillRect(x, y, 16, 10);
+    // head
+    nctx.fillRect(x + 2, y - 6, 8, 8);
+    // ears
+    nctx.fillRect(x + 1, y - 8, 4, 4);
+    nctx.fillRect(x + 7, y - 8, 4, 4);
+    // eyes
+    nctx.fillStyle = '#333';
+    nctx.fillRect(x + 4, y - 4, 2, 2);
+    nctx.fillRect(x + 7, y - 4, 2, 2);
+    // legs
+    nctx.fillStyle = cd;
+    nctx.fillRect(x + 1, y + 9, 4, 4);
+    nctx.fillRect(x + 11, y + 9, 4, 4);
+  }
+
+  // Pixel art items
+  function drawFish(x, y) {
+    nctx.fillStyle = '#4fc3f7';
+    nctx.fillRect(x + 2, y, 8, 6);
+    nctx.fillRect(x, y + 1, 3, 4);
+    nctx.fillRect(x + 10, y + 1, 3, 4);
+    nctx.fillStyle = '#0288d1';
+    nctx.fillRect(x + 4, y + 2, 2, 2);
+    // eye
+    nctx.fillStyle = '#111';
+    nctx.fillRect(x + 8, y + 1, 1, 1);
+  }
+
+  function drawYarn(x, y) {
+    nctx.fillStyle = '#e57373';
+    nctx.fillRect(x + 1, y, 6, 8);
+    nctx.fillRect(x, y + 1, 8, 6);
+    nctx.fillStyle = '#c62828';
+    nctx.fillRect(x + 2, y + 2, 2, 2);
+    nctx.fillRect(x + 4, y + 4, 2, 2);
+  }
+
+  function drawBomb(x, y) {
+    nctx.fillStyle = '#333';
+    nctx.fillRect(x + 1, y + 2, 10, 10);
+    nctx.fillRect(x + 3, y, 6, 12);
+    nctx.fillStyle = '#111';
+    nctx.fillRect(x + 3, y + 4, 6, 6);
+    // fuse
+    nctx.fillStyle = '#888';
+    nctx.fillRect(x + 5, y - 2, 2, 3);
+    // spark
+    if (Math.random() > 0.5) {
+      nctx.fillStyle = '#ff0';
+      nctx.fillRect(x + 5, y - 4, 2, 2);
+    }
+  }
+
+  function gameLoop() {
+    nctx.fillStyle = '#080808';
+    nctx.fillRect(0, 0, GW, GH);
+
+    if (gameState === 'title') {
+      nctx.fillStyle = '#ccc';
+      nctx.font = '28px "Pixelify Sans", monospace';
+      nctx.textAlign = 'center';
+      nctx.fillText('NEKO CATCH', GW / 2, GH / 2 - 40);
+      nctx.fillStyle = '#666';
+      nctx.font = '14px "Pixelify Sans", monospace';
+      nctx.fillText('Tap to Start', GW / 2, GH / 2 + 10);
+      // draw cat preview
+      drawGameCat(GW / 2 - 8, GH / 2 + 40);
+      nctx.textAlign = 'left';
+    } else if (gameState === 'playing') {
+      // Move cat with keys
+      if (keys['ArrowLeft'] || keys['a']) catX -= 4;
+      if (keys['ArrowRight'] || keys['d']) catX += 4;
+      catX = Math.max(0, Math.min(GW - 20, catX));
+
+      // Speed scales with score
+      baseSpeed = 1.2 + score * 0.04;
+
+      // Spawn
+      spawnTimer++;
+      const spawnRate = Math.max(20, 60 - score * 1.5);
+      if (spawnTimer >= spawnRate) { spawnItem(); spawnTimer = 0; }
+
+      // Update items
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
+        it.y += it.speed;
+        // Off screen
+        if (it.y > GH) { items.splice(i, 1); continue; }
+        // Collision with cat (cat at catX, GH-30, 20x14)
+        const catY = GH - 30;
+        if (it.y + 10 >= catY && it.y <= catY + 14 && it.x + 10 >= catX && it.x <= catX + 20) {
+          if (it.type === 'bomb') {
+            gameState = 'over';
+            if (score > highScore) { highScore = score; localStorage.setItem('nekoCatchHi', String(highScore)); }
+          } else {
+            score += it.type === 'yarn' ? 3 : 1;
+          }
+          items.splice(i, 1);
+        }
+      }
+
+      // Draw items
+      for (const it of items) {
+        if (it.type === 'fish') drawFish(it.x, it.y);
+        else if (it.type === 'yarn') drawYarn(it.x, it.y);
+        else drawBomb(it.x, it.y);
+      }
+
+      // Draw cat
+      drawGameCat(Math.round(catX), GH - 30);
+
+      // Score
+      nctx.fillStyle = '#888';
+      nctx.font = '12px "Pixelify Sans", monospace';
+      nctx.textAlign = 'left';
+      nctx.fillText('SCORE: ' + score, 8, 16);
+    } else if (gameState === 'over') {
+      nctx.fillStyle = '#f44336';
+      nctx.font = '28px "Pixelify Sans", monospace';
+      nctx.textAlign = 'center';
+      nctx.fillText('GAME OVER', GW / 2, GH / 2 - 40);
+      nctx.fillStyle = '#ccc';
+      nctx.font = '16px "Pixelify Sans", monospace';
+      nctx.fillText('Score: ' + score, GW / 2, GH / 2);
+      nctx.fillStyle = '#888';
+      nctx.font = '12px "Pixelify Sans", monospace';
+      nctx.fillText('High Score: ' + highScore, GW / 2, GH / 2 + 24);
+      nctx.fillStyle = '#666';
+      nctx.fillText('Tap to Retry', GW / 2, GH / 2 + 54);
+      nctx.textAlign = 'left';
+    }
+
+    animId = requestAnimationFrame(gameLoop);
+  }
+})();
 </script>
 </body>
 </html>
