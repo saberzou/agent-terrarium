@@ -1480,7 +1480,7 @@ frame();
   let catX = GW / 2 - 10;
   let items = [];
   let spawnTimer = 0;
-  let baseSpeed = 2.0;
+  let baseSpeed = 3.5;
   let animId = null;
   let particles = [];
   let scorePopups = [];
@@ -1574,7 +1574,7 @@ frame();
 
   function startGame() {
     gameState = 'playing';
-    score = 0; items = []; spawnTimer = 0; baseSpeed = 2.0;
+    score = 0; items = []; spawnTimer = 0; baseSpeed = 3.5;
     catX = GW / 2 - 10;
     particles = []; scorePopups = [];
     catExpression = 'normal'; catExpressionTimer = 0;
@@ -1683,10 +1683,10 @@ frame();
   function spawnItem() {
     const r = Math.random();
     let type;
-    if (r < 0.18) type = 'bomb';
+    if (r < 0.30) type = 'bomb';
     else if (r < 0.28) type = 'yarn';
     else type = 'fish';
-    items.push({ type, x: 10 + Math.random() * (GW - 30), y: -12, speed: baseSpeed + Math.random() * 1.0 });
+    items.push({ type, x: 10 + Math.random() * (GW - 30), y: -12, speed: baseSpeed + Math.random() * 2.0 });
   }
 
   // Draw pixel cat for game with expressions
@@ -1817,11 +1817,11 @@ frame();
       catX = Math.max(0, Math.min(GW - 20, catX));
 
       // Speed scales with score
-      baseSpeed = 2.0 + score * 0.08;
+      baseSpeed = 3.5 + score * 0.15;
 
       // Spawn
       spawnTimer++;
-      const spawnRate = Math.max(12, 40 - score * 2);
+      const spawnRate = Math.max(6, 25 - score * 2);
       if (spawnTimer >= spawnRate) { spawnItem(); spawnTimer = 0; }
 
       // Check for nearby bombs — alarmed expression
