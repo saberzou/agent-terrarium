@@ -1264,34 +1264,176 @@ frame();
     <style>
       #neko-overlay {
         position: fixed; inset: 0; z-index: 200;
-        background: rgba(0,0,0,0.85);
+        background: rgba(0,0,0,0.82);
         display: flex; align-items: center; justify-content: center;
         opacity: 0; pointer-events: none;
         transition: opacity .35s ease;
       }
       #neko-overlay.open { opacity: 1; pointer-events: auto; }
-      #neko-overlay canvas {
-        display: block; width: 100%; max-width: 800px;
-        image-rendering: pixelated; image-rendering: crisp-edges;
-        border: 1px solid #2a2a2a;
-        box-shadow: 0 0 40px rgba(255,255,255,0.03), 0 8px 60px rgba(0,0,0,0.8);
+      /* Retro computer body */
+      .retro-pc {
+        position: relative;
+        background: #d4c8a0;
+        border: 4px solid #b8a878;
+        border-radius: 16px 16px 8px 8px;
+        padding: 20px 20px 12px 20px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+        max-width: 420px;
+        width: 90vw;
+        font-family: 'Pixelify Sans', monospace;
       }
-      #neko-close {
-        position: absolute; top: 16px; right: 20px;
-        font-family: 'Pixelify Sans', monospace; font-size: 22px;
-        color: #666; background: none; border: none; cursor: pointer;
-        z-index: 201; padding: 8px; line-height: 1;
+      /* Brand label */
+      .retro-pc-brand {
+        text-align: center;
+        font-size: 11px;
+        color: #8a7e60;
+        letter-spacing: 3px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
       }
-      #neko-close:hover { color: #ccc; }
-      /* CRT scanlines on game */
-      #neko-wrap { position: relative; width: 100%; max-width: 800px; }
+      /* Monitor bezel */
+      .retro-monitor {
+        background: #1a1a1a;
+        border: 6px solid #2a2520;
+        border-radius: 10px;
+        padding: 8px;
+        position: relative;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+      }
+      /* Power LED */
+      .retro-monitor::before {
+        content: '';
+        position: absolute;
+        bottom: -14px;
+        right: 16px;
+        width: 6px; height: 6px;
+        background: #4caf50;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #4caf50;
+      }
+      /* CRT screen area */
+      #neko-wrap {
+        position: relative;
+        width: 100%;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #080808;
+      }
       #neko-wrap::after {
         content: ''; position: absolute; inset: 0; pointer-events: none;
-        background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+        background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
+        z-index: 2;
+      }
+      /* CRT vignette */
+      #neko-wrap::before {
+        content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+        background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.35) 100%);
+      }
+      #neko-overlay canvas {
+        display: block; width: 100%;
+        image-rendering: pixelated; image-rendering: crisp-edges;
+      }
+      /* Control panel below monitor */
+      .retro-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 14px;
+        padding: 8px 0 4px 0;
+      }
+      /* Arcade button base */
+      .retro-btn {
+        font-family: 'Pixelify Sans', monospace;
+        font-size: 16px;
+        color: #2a2520;
+        background: #c4b888;
+        border: 3px solid #a89868;
+        border-bottom-width: 5px;
+        border-radius: 6px;
+        padding: 8px 16px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        line-height: 1;
+        transition: border-bottom-width 0.05s, transform 0.05s;
+        box-shadow: 0 2px 0 #8a7e60;
+      }
+      .retro-btn:active, .retro-btn.pressed {
+        border-bottom-width: 3px;
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .retro-btn-arrow {
+        font-size: 20px;
+        padding: 8px 18px;
+        min-width: 48px;
+        text-align: center;
+      }
+      .retro-btn-start {
+        background: #e8625a;
+        border-color: #c0463e;
+        color: #fff;
+        font-size: 13px;
+        letter-spacing: 2px;
+        padding: 8px 20px;
+        box-shadow: 0 2px 0 #8b2e28;
+      }
+      .retro-btn-start:active, .retro-btn-start.pressed {
+        box-shadow: none;
+      }
+      /* Power/close button */
+      #neko-close {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        font-family: 'Pixelify Sans', monospace;
+        font-size: 14px;
+        color: #8a7e60;
+        background: #c4b888;
+        border: 2px solid #a89868;
+        border-radius: 50%;
+        width: 26px; height: 26px;
+        cursor: pointer;
+        z-index: 201;
+        line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+        padding: 0;
+      }
+      #neko-close:hover { background: #e8625a; color: #fff; border-color: #c0463e; }
+      /* Vent slots decoration */
+      .retro-vents {
+        display: flex; justify-content: center; gap: 4px;
+        margin-top: 8px; opacity: 0.35;
+      }
+      .retro-vents span {
+        display: block; width: 24px; height: 2px;
+        background: #8a7e60; border-radius: 1px;
+      }
+      /* Mobile responsive */
+      @media (max-width: 480px) {
+        .retro-pc { padding: 12px 10px 8px 10px; border-width: 3px; border-radius: 12px 12px 6px 6px; }
+        .retro-monitor { border-width: 4px; padding: 6px; }
+        .retro-btn { padding: 10px 14px; font-size: 14px; }
+        .retro-btn-arrow { padding: 10px 20px; font-size: 22px; min-width: 52px; }
+        .retro-btn-start { padding: 10px 18px; }
+        .retro-controls { gap: 8px; margin-top: 10px; }
       }
     </style>
-    <button id="neko-close">\u2715</button>
-    <div id="neko-wrap"><canvas id="neko-canvas"></canvas></div>
+    <div class="retro-pc">
+      <button id="neko-close">\u23FB</button>
+      <div class="retro-pc-brand">Neko OS v1.0</div>
+      <div class="retro-monitor">
+        <div id="neko-wrap"><canvas id="neko-canvas"></canvas></div>
+      </div>
+      <div class="retro-controls">
+        <button class="retro-btn retro-btn-arrow" id="neko-btn-left">\u25C0</button>
+        <button class="retro-btn retro-btn-start" id="neko-btn-start">START</button>
+        <button class="retro-btn retro-btn-arrow" id="neko-btn-right">\u25B6</button>
+      </div>
+      <div class="retro-vents"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
   `;
   document.body.appendChild(overlay);
 
@@ -1324,6 +1466,33 @@ frame();
   closeBtn.addEventListener('click', closeNekoCatch);
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && overlay.classList.contains('open')) closeNekoCatch();
+  });
+
+  // Control buttons
+  const btnLeft = document.getElementById('neko-btn-left');
+  const btnRight = document.getElementById('neko-btn-right');
+  const btnStart = document.getElementById('neko-btn-start');
+
+  function btnDown(btn, key) {
+    btn.classList.add('pressed');
+    keys[key] = true;
+  }
+  function btnUp(btn, key) {
+    btn.classList.remove('pressed');
+    keys[key] = false;
+  }
+  ['mousedown','touchstart'].forEach(function(evt) {
+    btnLeft.addEventListener(evt, function(e) { e.preventDefault(); btnDown(btnLeft,'ArrowLeft'); }, { passive: false });
+    btnRight.addEventListener(evt, function(e) { e.preventDefault(); btnDown(btnRight,'ArrowRight'); }, { passive: false });
+  });
+  ['mouseup','mouseleave','touchend','touchcancel'].forEach(function(evt) {
+    btnLeft.addEventListener(evt, function() { btnUp(btnLeft,'ArrowLeft'); });
+    btnRight.addEventListener(evt, function() { btnUp(btnRight,'ArrowRight'); });
+  });
+  btnStart.addEventListener('click', function() {
+    if (gameState === 'title') startGame();
+    else if (gameState === 'over') gameState = 'title';
+    else if (gameState === 'playing') { gameState = 'over'; if (score > highScore) { highScore = score; localStorage.setItem('nekoCatchHi', String(highScore)); } }
   });
 
   // Input
